@@ -42,6 +42,7 @@ python scripts/new_repo.py
 Ele ajuda a:
 - escolher nome do repositorio
 - definir visibilidade publica/privada
+- clonar o repositorio novo localmente por padrao
 - configurar `GH_PAT`
 - disparar a workflow `Setup Kanban`
 - validar o resultado final
@@ -54,6 +55,7 @@ iniciar
 
 e o agente deve preferir esse wizard como fluxo padrao.
 Quando automatizar esse passo, deve usar `--yes` para evitar prompts finais em modo nao interativo.
+Se quiser criar apenas no GitHub sem pasta local, use `--skip-clone`.
 
 ## Como usar manualmente
 

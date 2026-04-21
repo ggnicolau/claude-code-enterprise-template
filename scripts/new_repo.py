@@ -169,6 +169,22 @@ def list_workflows(env: dict[str, str], full_name: str) -> list[dict[str, object
     return json.loads(output).get("workflows", [])
 
 
+def clone_repo_locally(env: dict[str, str], full_name: str, destination: Path) -> str:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    return run_command(["gh", "repo", "clone", full_name, str(destination)], env)
+
+
+def build_local_clone_path(repo_name: str, base_dir: Path | None = None) -> Path:
+    return (base_dir or ROOT.parent) / repo_name
+
+
+def ensure_local_clone_absent(destination: Path) -> None:
+    if destination.exists():
+        raise RuntimeError(
+            f"A pasta local {destination} ja existe. Use outro nome ou mova/remova a pasta."
+        )
+
+
 def resolve_workflow_identifier(
     env: dict[str, str],
     full_name: str,
@@ -409,6 +425,11 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         help="Nao roda a validacao final.",
     )
     parser.add_argument(
+        "--skip-clone",
+        action="store_true",
+        help="Nao clona o repositorio novo localmente.",
+    )
+    parser.add_argument(
         "--yes",
         action="store_true",
         help="Confirma automaticamente a criacao sem pedir aprovacao final.",
@@ -466,6 +487,8 @@ def main(argv: Iterable[str] | None = None) -> int:
     configure_secret = not args.skip_secret
     run_workflow_now = not args.skip_workflow
     validate_result = not args.skip_validate
+    clone_locally = not args.skip_clone
+    local_clone_path = build_local_clone_path(repo_name)
 
     if args.skip_secret is False and args.name is None and prompt_enabled:
         configure_secret = (
@@ -494,6 +517,15 @@ def main(argv: Iterable[str] | None = None) -> int:
             )
             == "yes"
         )
+    if args.skip_clone is False and args.name is None and prompt_enabled:
+        clone_locally = (
+            prompt_choice(
+                "Clonar o repositorio novo localmente?",
+                [("yes", "Sim"), ("no", "Nao")],
+                default_key="yes",
+            )
+            == "yes"
+        )
 
     full_name = f"{owner}/{repo_name}"
     project_title = f"{repo_name} Kanban"
@@ -504,6 +536,9 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(f"- Configurar GH_PAT: {'sim' if configure_secret else 'nao'}")
     print(f"- Rodar Setup Kanban: {'sim' if run_workflow_now else 'nao'}")
     print(f"- Validar ao final: {'sim' if validate_result else 'nao'}")
+    print(f"- Clonar localmente: {'sim' if clone_locally else 'nao'}")
+    if clone_locally:
+        print(f"- Pasta local: {local_clone_path}")
 
     if should_confirm_creation(args, interactive):
         if (
@@ -519,6 +554,8 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     try:
         ensure_repo_absent(env, full_name)
+        if clone_locally:
+            ensure_local_clone_absent(local_clone_path)
 
         create_command = [
             "gh",
@@ -528,13 +565,18 @@ def main(argv: Iterable[str] | None = None) -> int:
             "--template",
             template_repo,
             f"--{visibility}",
-            "--clone=false",
         ]
+        if not clone_locally:
+            create_command.append("--clone=false")
         if description:
             create_command.extend(["--description", description])
 
         repo_url = run_command(create_command, env)
         print(f"\nRepositorio criado: {repo_url}")
+
+        if clone_locally:
+            clone_repo_locally(env, full_name, local_clone_path)
+            print(f"- Repositorio clonado em: {local_clone_path}")
 
         if configure_secret:
             gh_token = env.get("GH_TOKEN")

@@ -88,3 +88,28 @@ def test_resolve_workflow_identifier_accepts_matching_path_suffix(
     )
 
     assert workflow_id == "99"
+
+
+def test_parse_args_supports_skip_clone_flag() -> None:
+    args = new_repo.parse_args(["--name", "demo", "--skip-clone"])
+
+    assert args.name == "demo"
+    assert args.skip_clone is True
+
+
+def test_build_local_clone_path_uses_parent_of_template_root(tmp_path: Path) -> None:
+    clone_path = new_repo.build_local_clone_path("demo", base_dir=tmp_path)
+
+    assert clone_path == tmp_path / "demo"
+
+
+def test_ensure_local_clone_absent_raises_when_destination_exists(tmp_path: Path) -> None:
+    destination = tmp_path / "demo"
+    destination.mkdir()
+
+    try:
+        new_repo.ensure_local_clone_absent(destination)
+    except RuntimeError as exc:
+        assert str(destination) in str(exc)
+    else:
+        raise AssertionError("Era esperado erro quando a pasta local ja existe.")
