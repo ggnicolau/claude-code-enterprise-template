@@ -1,6 +1,6 @@
 # Claude Code Kanban Template
 
-Template base para novos projetos Python com Claude Code configurado e kanban no GitHub Projects.
+Template base para novos projetos Python com Claude Code configurado, equipe multi-agentes e kanban no GitHub Projects.
 
 ## Arquitetura Multi-Agentes
 
@@ -40,26 +40,42 @@ graph TD
 ```text
 .claude/
   agents/
-    project-manager.md
-    tech-lead.md
-    product-owner.md
-    data-engineer.md
-    ml-engineer.md
-    ai-engineer.md
-    infra-devops.md
-    qa.md
-    researcher.md
-    security-auditor.md
+    project-manager.md      # ponto de entrada, delega para PO ou tech-lead
+    tech-lead.md            # orquestrador técnico + code review
+    product-owner.md        # kanban + apresentações
+    data-engineer.md        # pipelines + ETL
+    ml-engineer.md          # modelos + experimentos
+    ai-engineer.md          # LLMs + agentes + RAG
+    infra-devops.md         # cloud + CI/CD
+    qa.md                   # testes + qualidade
+    researcher.md           # pesquisa + benchmarks
+    security-auditor.md     # segurança + vulnerabilidades
+    frontend-engineer.md    # web + UI + UX
   commands/
     review.md
     deploy.md
     fix-issue.md
   settings.json
+.agents/
+  skills/
+    project-kickoff/        # fluxo de entrada de novas demandas
+    code-review/            # padrão de revisão de código
+    backlog-management/     # gestão de issues e kanban
+    data-pipeline/          # padrão de pipelines ETL
+    ml-experiment/          # condução de experimentos de ML
+    llm-integration/        # integração de LLMs e agentes
+    ci-cd-setup/            # configuração de CI/CD
+    testing-patterns/       # padrões de teste com pytest
+    research-report/        # estrutura de relatórios de pesquisa
+    security-review/        # checklist de segurança
+    frontend-patterns/      # padrões de desenvolvimento frontend
+    caveman/                # opcional: modo ultra-comprimido de tokens (~75% menos)
+    caveman-commit/         # opcional: mensagens de commit comprimidas
+    caveman-review/         # opcional: code review em uma linha por finding
 .github/
   workflows/
     setup-kanban.yml
 scripts/
-  verify.sh
   new_repo.py
 src/
 tests/
@@ -74,29 +90,26 @@ AGENTS.md
 
 ## Wizard
 
-Se este folder for usado para criar um novo repositorio a partir do template, o caminho recomendado agora e o wizard:
+Se este folder for usado para criar um novo repositorio a partir do template, o caminho recomendado e o wizard:
 
 ```bash
 python scripts/new_repo.py
 ```
 
-Ele ajuda a:
-- escolher nome do repositorio
-- definir visibilidade publica/privada
-- clonar o repositorio novo localmente por padrao
+Ou simplesmente diga `iniciar` em uma conversa nova neste projeto.
+
+O wizard ajuda a:
+- escolher nome e visibilidade do repositorio
+- clonar o repositorio novo localmente
 - configurar `GH_PAT`
 - disparar a workflow `Setup Kanban`
+- instalar opcionalmente os skills Caveman (modo comprimido de tokens)
 - validar o resultado final
 
-Em uma conversa nova neste projeto, voce tambem pode simplesmente dizer:
-
-```text
-iniciar
-```
-
-e o agente deve preferir esse wizard como fluxo padrao.
-Quando automatizar esse passo, deve usar `--yes` para evitar prompts finais em modo nao interativo.
-Se quiser criar apenas no GitHub sem pasta local, use `--skip-clone`.
+Flags uteis:
+- `--yes` — confirma tudo sem prompts (modo nao interativo)
+- `--skip-clone` — cria apenas no GitHub sem pasta local
+- `--caveman` / `--skip-caveman` — instala ou pula os skills Caveman
 
 ## Como usar manualmente
 
@@ -107,8 +120,7 @@ Se quiser criar apenas no GitHub sem pasta local, use `--skip-clone`.
    - existe um project com nome `<repo> Kanban`
    - o project aparece na aba `Projects` do repositorio
    - existem as views `Board`, `Table` e `Done`
-   - a issue `Getting Started` existe
-   - a issue `Getting Started` esta no project com status `Todo`
+   - a issue `Getting Started` existe e esta no project com status `Todo`
 
 ## Observacoes
 
@@ -121,7 +133,7 @@ Se quiser criar apenas no GitHub sem pasta local, use `--skip-clone`.
 
 | Comando | O que faz |
 |---|---|
-| `/project:review` | Dispara `code-reviewer` e `security-auditor` em paralelo e consolida um relatorio unico |
+| `/project:review` | Dispara `tech-lead` e `security-auditor` em paralelo e consolida um relatorio unico |
 | `/project:fix-issue` | Identifica causa raiz e aplica correcao minima |
 | `/project:deploy` | Checklist de deploy |
 
