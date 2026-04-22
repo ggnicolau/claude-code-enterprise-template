@@ -385,6 +385,53 @@ def build_validation_report(
     )
 
 
+CAVEMAN_SKILL_CONTENT = """\
+---
+name: caveman
+description: >
+  Ultra-compressed communication mode. Cuts token usage ~75% by speaking like caveman
+  while keeping full technical accuracy. Supports intensity levels: lite, full (default), ultra.
+  Use when user says "caveman mode", "talk like caveman", "use caveman", "less tokens",
+  "be brief", or invokes /caveman.
+---
+
+Respond terse like smart caveman. All technical substance stay. Only fluff die.
+
+## Persistence
+
+ACTIVE EVERY RESPONSE. No revert after many turns. Off only: "stop caveman" / "normal mode".
+
+Default: **full**. Switch: `/caveman lite|full|ultra`.
+
+## Rules
+
+Drop: articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries (sure/certainly/of course/happy to), hedging. Fragments OK. Short synonyms (big not extensive, fix not "implement a solution for"). Technical terms exact. Code blocks unchanged.
+
+Pattern: `[thing] [action] [reason]. [next step].`
+
+Not: "Sure! I'd be happy to help you with that. The issue you're experiencing is likely caused by..."
+Yes: "Bug in auth middleware. Token expiry check use `<` not `<=`. Fix:"
+
+## Intensity
+
+| Level | What changes |
+|-------|-------------|
+| **lite** | No filler/hedging. Keep articles + full sentences. Professional but tight |
+| **full** | Drop articles, fragments OK, short synonyms. Classic caveman |
+| **ultra** | Abbreviate (DB/auth/config/req/res/fn/impl), strip conjunctions, arrows for causality (X -> Y) |
+
+## Boundaries
+
+Code/commits/PRs: write normal. Security warnings and destructive op confirmations: full sentences. Resume caveman after.
+"""
+
+
+def install_caveman_skill(destination: Path) -> None:
+    skill_dir = destination / ".agents" / "skills" / "caveman"
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    (skill_dir / "SKILL.md").write_text(CAVEMAN_SKILL_CONTENT, encoding="utf-8")
+
+
 def ensure_repo_absent(env: dict[str, str], full_name: str) -> None:
     result = subprocess.run(
         ["gh", "repo", "view", full_name, "--json", "nameWithOwner"],
@@ -433,6 +480,18 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         "--yes",
         action="store_true",
         help="Confirma automaticamente a criacao sem pedir aprovacao final.",
+    )
+    caveman_group = parser.add_mutually_exclusive_group()
+    caveman_group.add_argument(
+        "--caveman",
+        action="store_true",
+        default=None,
+        help="Instala o skill Caveman no repositorio novo.",
+    )
+    caveman_group.add_argument(
+        "--skip-caveman",
+        action="store_true",
+        help="Nao instala o skill Caveman.",
     )
     return parser.parse_args(list(argv))
 
@@ -527,6 +586,20 @@ def main(argv: Iterable[str] | None = None) -> int:
             == "yes"
         )
 
+    install_caveman = False
+    if not args.skip_caveman:
+        if args.caveman:
+            install_caveman = True
+        elif prompt_enabled:
+            install_caveman = (
+                prompt_choice(
+                    "Instalar Caveman? (modo ultra-comprimido de tokens, ~75% menos tokens)",
+                    [("yes", "Sim"), ("no", "Nao")],
+                    default_key="yes",
+                )
+                == "yes"
+            )
+
     full_name = f"{owner}/{repo_name}"
     project_title = f"{repo_name} Kanban"
 
@@ -539,6 +612,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(f"- Clonar localmente: {'sim' if clone_locally else 'nao'}")
     if clone_locally:
         print(f"- Pasta local: {local_clone_path}")
+    print(f"- Instalar Caveman: {'sim' if install_caveman else 'nao'}")
 
     if should_confirm_creation(args, interactive):
         if (
@@ -577,6 +651,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         if clone_locally:
             clone_repo_locally(env, full_name, local_clone_path)
             print(f"- Repositorio clonado em: {local_clone_path}")
+            if install_caveman:
+                install_caveman_skill(local_clone_path)
+                print("- Caveman skill instalado.")
 
         if configure_secret:
             gh_token = env.get("GH_TOKEN")
