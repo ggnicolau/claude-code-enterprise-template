@@ -1,82 +1,38 @@
-# Project Overview
+# Claude Code Kanban Template — Instruções para o Claude Code
 
-Template base para novos projetos Python com Claude Code configurado, equipe multi-agentes e kanban no GitHub Projects.
+Este repositório é um **template de criação de projetos**. Quando você está aqui, seu papel é ajudar a criar novos projetos a partir deste template — não desenvolver produto.
 
-## Stack
-- Python 3.11+
-- Tests: pytest
-- Formatting: ruff, black
-- Env management: uv ou conda
+## Seu papel aqui
 
-## Conventions
-- Type hints em todas as funções públicas
-- Docstrings apenas quando o "porquê" não é óbvio
-- Prefira dataclasses ou Pydantic para modelos de dados
-- Notebooks em `notebooks/`, código reutilizável em `src/`
-- Nunca commitar dados brutos ou modelos pesados — use `.gitignore`
+Você opera como **ferramenta de criação de repositórios**. O que faz sentido neste contexto:
 
-## Architecture Notes
-- Scripts CLI usam `typer` ou `argparse`
-- Logs estruturados para rastrear execuções
+- Rodar `/wizard` para criar um novo projeto filho
+- Manter e melhorar os arquivos do template (agentes, commands, workflows, scripts)
+- Não há kanban de produto aqui, não há backlog de features, não há agentes de especialidade sendo acionados
 
-## What to Avoid
-- Não usar `print()` para debug — use `logging`
-- Não hardcodar paths — use `pathlib.Path`
-- Não misturar lógica de negócio com I/O
+## O que este template cria
 
-## Equipe Multi-Agentes
+Ao rodar `/wizard`, um novo repositório filho é criado com:
 
-Este template inclui 11 agentes em `.claude/agents/`. O ponto de entrada padrão é o `project-manager`.
+- 11 agentes especializados em `.claude/agents/`
+- Kanban no GitHub Projects pré-populado com épicos de negócio, produto, tech, lançamento e operações
+- Commands: `/kickoff`, `/review`, `/deploy`, `/fix-issue`
+- CI/CD configurado (ruff, black, pytest)
+- `CLAUDE.md` e `AGENTS.md` gerados especificamente para o projeto filho
 
-| Agente | Responsabilidade |
+O filho começa com `/kickoff` — que conduz discovery, monta backlog completo e obtém aprovação antes de qualquer execução.
+
+## Arquivos importantes deste template
+
+| Arquivo | Propósito |
 |---|---|
-| `project-manager` | Ponto de entrada — entende negócio e técnico, delega |
-| `tech-lead` | Orquestrador técnico + code review |
-| `product-owner` | Kanban, backlog, apresentações |
-| `data-engineer` | Pipelines, ETL, qualidade de dados |
-| `ml-engineer` | Modelos, features, experimentos |
-| `ai-engineer` | LLMs, agentes, RAG, evals |
-| `infra-devops` | Cloud, CI/CD, containers |
-| `qa` | Testes unitários, integração, e2e |
-| `researcher` | Pesquisa, benchmarks, literatura |
-| `security-auditor` | Segurança, vulnerabilidades |
-| `frontend-engineer` | Web, UI, UX |
+| `scripts/new_repo.py` | Lógica do wizard de criação |
+| `scripts/templates/CLAUDE.md` | CLAUDE.md gerado no filho |
+| `scripts/templates/AGENTS.md` | AGENTS.md gerado no filho |
+| `scripts/templates/kickoff.md` | Command `/kickoff` copiado para o filho |
+| `.github/workflows/setup-kanban.yml` | Cria o Kanban e épicos no projeto filho |
+| `.claude/commands/wizard.md` | Command `/wizard` — só existe no pai |
 
-## Regras de Kanban
+## Iniciar
 
-O kanban é a fonte de verdade do processo. Todos os agentes devem consultá-lo antes de agir.
-
-| Papel | Agente | Permissões |
-|---|---|---|
-| Dono | `product-owner` | cria, fecha, move qualquer card, árbitro final |
-| Leitor obrigatório | `project-manager` | lê o kanban antes de toda delegação |
-| Criador de issues | `project-manager`, `product-owner` | abrem issues novas |
-| Atualizador | todos os especialistas | move o próprio card para `In Progress` e `In Review` |
-| Fechador | `product-owner` + `tech-lead` | movem para `Done` após aprovação |
-
-## Regras de Código e PR
-
-| Etapa | Responsável |
-|---|---|
-| Escrever código | agente especialista da tarefa |
-| Abrir PR | agente especialista que implementou |
-| Code review | `tech-lead` — sempre |
-| Security review | `security-auditor` — PRs com infra, auth ou dados sensíveis |
-| QA review | `qa` — valida cobertura de testes |
-| Aprovar PR | `tech-lead` |
-| Merge | `tech-lead`; `infra-devops` em PRs de CI/CD quando delegado |
-| Fechar issue | `product-owner` após merge |
-
-Regra central: **nenhum agente faz merge do próprio trabalho sem aprovação do `tech-lead`**.
-
-## Skills Disponíveis
-
-Skills base em `.agents/skills/` — uma por agente. Skills Caveman são opcionais (instaladas via wizard):
-
-- `caveman` — comunicação ultra-comprimida (~75% menos tokens)
-- `caveman-commit` — mensagens de commit comprimidas
-- `caveman-review` — code review em uma linha por finding
-
-## Iniciar Novo Projeto
-
-Em uma conversa nova, use `/wizard` para rodar o wizard de criação de repositório.
+Use `/wizard` para criar um novo projeto filho.

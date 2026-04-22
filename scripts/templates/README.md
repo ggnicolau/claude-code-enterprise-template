@@ -1,0 +1,94 @@
+# {repo_name}
+
+> Descrição curta do projeto — o que faz e para quem.
+
+---
+
+## Visão Geral
+
+_(Preencher após o `/kickoff`: objetivo, problema que resolve, principais funcionalidades.)_
+
+---
+
+## Como Rodar
+
+### Pré-requisitos
+
+- Python 3.11+
+- [`uv`](https://github.com/astral-sh/uv) instalado
+
+### Instalação
+
+```bash
+git clone https://github.com/<org>/{repo_name}.git
+cd {repo_name}
+uv sync
+```
+
+### Variáveis de Ambiente
+
+Copie o exemplo e preencha os valores:
+
+```bash
+cp .env.example .env
+```
+
+### Executar
+
+```bash
+uv run python -m src.main
+```
+
+---
+
+## Desenvolvimento
+
+```bash
+# Testes
+uv run pytest
+
+# Linting e formatação
+uv run ruff check .
+uv run black .
+```
+
+Pull requests passam por CI automático (ruff + black + pytest).
+
+---
+
+## Estrutura
+
+```text
+src/          # código principal
+tests/        # testes
+notebooks/    # exploração e análise
+.claude/
+  agents/     # 11 agentes especializados
+  commands/   # /kickoff, /review, /deploy, /fix-issue
+```
+
+---
+
+## Equipe de Agentes
+
+O ponto de entrada é o `project-manager`. Rode `/kickoff` para iniciar o projeto ou continue pelo Kanban do GitHub Projects.
+
+| Agente | Responsabilidade |
+|---|---|
+| `project-manager` | Ponto de entrada — delega, consolida |
+| `tech-lead` | Orquestração técnica, code review |
+| `product-owner` | Kanban, backlog, roadmap |
+| `data-engineer` | Pipelines, ETL |
+| `ml-engineer` | Modelos, experimentos |
+| `ai-engineer` | LLMs, agentes, RAG |
+| `infra-devops` | Cloud, CI/CD |
+| `qa` | Testes e qualidade |
+| `researcher` | Pesquisa técnica e de produto |
+| `security-auditor` | Segurança |
+| `frontend-engineer` | Web, UI, UX |
+
+---
+
+## Status
+
+Acompanhe o progresso no [GitHub Projects](https://github.com/<org>/{repo_name}/projects).

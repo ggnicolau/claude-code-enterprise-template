@@ -1,15 +1,22 @@
 # Claude Code Kanban Template
 
-Template base para novos projetos Python com Claude Code configurado, equipe multi-agentes e kanban no GitHub Projects.
+Template base para criar novos projetos Python com Claude Code configurado, equipe multi-agentes e kanban no GitHub Projects.
 
-## O que este template entrega
+**Este repositório é uma fábrica de projetos** — você usa o `/wizard` aqui para criar um novo repositório filho já configurado. O desenvolvimento acontece no filho, não aqui.
 
-- **11 agentes especializados** com papéis claros e sem sobreposição de responsabilidades
-- **Kanban no GitHub Projects** configurado automaticamente via workflow — com épicos template cobrindo todas as dimensões do projeto (negócio, produto, tech, lançamento)
-- **`/wizard`** para criar novos repositórios a partir do template com um comando
-- **`/kickoff`** para iniciar o projeto corretamente: discovery → backlog completo → aprovação → execução
-- **Permissões granulares** — agentes operam sem prompts desnecessários, com operações destrutivas bloqueadas
-- **Templates de `CLAUDE.md` e `AGENTS.md`** gerados por projeto ao criar via wizard
+---
+
+## O que o filho recebe ao ser criado
+
+| Entregável | Detalhe |
+|---|---|
+| **11 agentes especializados** | `project-manager`, `tech-lead`, `product-owner`, `data-engineer`, `ml-engineer`, `ai-engineer`, `infra-devops`, `qa`, `researcher`, `security-auditor`, `frontend-engineer` |
+| **Kanban pré-populado** | Épicos template em 6 dimensões: Discovery, Negócio, Produto, Tech, Lançamento, Operações |
+| **`/kickoff`** | Command que conduz discovery → backlog completo → aprovação antes de qualquer execução |
+| **`/review`, `/deploy`, `/fix-issue`** | Commands de operação do dia a dia |
+| **CI/CD** | GitHub Actions com ruff, black e pytest em todo PR |
+| **`CLAUDE.md` e `AGENTS.md`** | Gerados com o nome do projeto, com regras de persona, kanban e delegação |
+| **Permissões granulares** | Agentes operam sem prompts desnecessários; operações destrutivas bloqueadas |
 
 ---
 
@@ -48,64 +55,11 @@ graph TD
 
 ---
 
-## Equipe de Agentes
+## Como criar um novo projeto
 
-| Agente | Responsabilidade |
-|---|---|
-| `project-manager` | Ponto de entrada — delega, consolida resultados, apresentações e relatórios |
-| `tech-lead` | Orquestrador técnico, code review, dono da documentação técnica |
-| `product-owner` | Kanban, backlog, roadmap, priorização |
-| `data-engineer` | Pipelines, ETL, qualidade de dados |
-| `ml-engineer` | Modelos, features, experimentos |
-| `ai-engineer` | LLMs, agentes, RAG, evals |
-| `infra-devops` | Cloud, CI/CD, containers |
-| `qa` | Testes unitários, integração, e2e |
-| `researcher` | Pesquisa técnica e de produto, benchmarks, inteligência competitiva |
-| `security-auditor` | Segurança, vulnerabilidades |
-| `frontend-engineer` | Web, UI, UX |
+### Via wizard (recomendado)
 
-Cada agente pode spawnar **subagentes efêmeros** para tarefas que exigem isolamento de contexto — exploração de dados desconhecidos, segunda opinião técnica independente, hipóteses concorrentes de pesquisa, etc. Os subagentes existem apenas durante a tarefa e são descartados ao terminar.
-
----
-
-## Estrutura de Arquivos
-
-```text
-.claude/
-  agents/                    # definições dos 11 agentes
-  commands/
-    kickoff.md               # /kickoff — discovery + backlog + aprovação (obrigatório ao iniciar)
-    wizard.md                # /wizard — criação de novo repositório
-    review.md                # /review — code review orquestrado
-    deploy.md                # /deploy — checklist de deploy
-    fix-issue.md             # /fix-issue — correcao de bug
-  settings.json              # permissoes e hooks
-scripts/
-  new_repo.py                # script de criacao de repositorio
-  templates/
-    CLAUDE.md                # template de CLAUDE.md para novos projetos
-    AGENTS.md                # template de AGENTS.md para novos projetos
-.github/
-  workflows/
-    setup-kanban.yml         # configura GitHub Projects automaticamente
-src/
-tests/
-notebooks/
-pyproject.toml
-CLAUDE.md
-CLAUDE.local.md.example
-.mcp.json.example
-.gitignore
-AGENTS.md
-```
-
----
-
-## Como Criar um Novo Projeto
-
-### Via wizard + kickoff (recomendado)
-
-Em uma conversa nova neste projeto, use:
+Em uma conversa nova **neste repositório**, use:
 
 ```
 /wizard
@@ -114,18 +68,14 @@ Em uma conversa nova neste projeto, use:
 O wizard vai:
 1. Perguntar nome, visibilidade e se instalar skills Caveman
 2. Verificar se a pasta local já existe
-3. Criar o repositório no GitHub
+3. Criar o repositório no GitHub a partir deste template
 4. Clonar localmente
-5. Configurar o secret `GH_PAT` (use um PAT dedicado com escopo mínimo: `repo`, `project`, `read:org`)
-6. Disparar a workflow `Setup Kanban` — que já cria um backlog template com épicos de negócio, produto, tech, lançamento e operações
-7. Limpar arquivos de template e gerar `CLAUDE.md` e `AGENTS.md` específicos do projeto
-8. Chamar `/kickoff` automaticamente
+5. Configurar o secret `GH_PAT` (PAT com escopo: `repo`, `project`, `read:org`)
+6. Disparar a workflow `Setup Kanban` — cria o board e os épicos template
+7. Remover arquivos exclusivos do template (wizard, scripts de criação, etc.)
+8. Gerar `CLAUDE.md` e `AGENTS.md` específicos do projeto filho
 
-Em seguida, o `/kickoff` conduz:
-1. **Discovery** — entende o problema, usuários e critério de sucesso
-2. **Backlog completo** — `product-owner` refina os épicos template com o contexto do projeto
-3. **Aprovação** — usuário valida antes de qualquer execução
-4. **Delegação** — `project-manager` aciona os especialistas certos para as primeiras issues
+Após a criação, abra o projeto filho em uma nova conversa e rode `/kickoff`.
 
 ### Via script direto
 
@@ -140,56 +90,53 @@ Flags úteis:
 
 ### Via GitHub (manual)
 
-1. Clique em **Use this template** no GitHub e crie um novo repositório
+1. Clique em **Use this template** no GitHub
 2. Adicione o secret `GH_PAT` no repositório novo
 3. Rode a workflow `Setup Kanban` manualmente
-4. Valide:
-   - existe um project com nome `<repo> Kanban`
-   - o project aparece na aba `Projects` do repositório
-   - existem as views `Board`, `Table` e `Done`
-   - a issue `Getting Started` existe no project com status `Todo`
+4. Clone localmente e abra no Claude Code
 
 ---
 
-## Fluxo de Kanban
+## Estrutura deste template
 
-O kanban é a fonte de verdade. Todos os agentes consultam antes de agir.
-
-| Papel | Agente | Permissões |
-|---|---|---|
-| Dono | `product-owner` | cria, fecha, move qualquer card, árbitro final |
-| Leitor obrigatório | `project-manager` | lê antes de toda delegação |
-| Criador de issues | `project-manager`, `product-owner` | abrem issues novas |
-| Atualizador | todos os especialistas | move o próprio card para `In Progress` e `In Review` |
-| Fechador | `product-owner` + `tech-lead` | movem para `Done` após aprovação |
+```text
+.claude/
+  agents/                    # definições dos 11 agentes
+  commands/
+    wizard.md                # /wizard — exclusivo do pai
+    review.md                # /review — herdado pelo filho
+    deploy.md                # /deploy — herdado pelo filho
+    fix-issue.md             # /fix-issue — herdado pelo filho
+  settings.json              # permissões e operações bloqueadas
+scripts/
+  new_repo.py                # lógica do wizard
+  templates/
+    CLAUDE.md                # gerado no filho com regras de project-manager
+    AGENTS.md                # gerado no filho com equipe e fluxos
+    kickoff.md               # copiado para .claude/commands/ do filho
+.github/
+  workflows/
+    setup-kanban.yml         # cria Kanban e épicos no projeto filho
+    ci.yml                   # CI: ruff, black, pytest
+src/
+tests/
+notebooks/
+pyproject.toml
+CLAUDE.md                    # instrui o Claude Code quando opera neste template
+CLAUDE.local.md.example
+.mcp.json.example
+.gitignore
+AGENTS.md
+```
 
 ---
 
-## Fluxo de Código e PR
-
-| Etapa | Responsável |
-|---|---|
-| Escrever código | agente especialista da tarefa |
-| Abrir PR | agente especialista que implementou |
-| Code review | `tech-lead` — sempre |
-| Security review | `security-auditor` — PRs com infra, auth ou dados sensíveis |
-| QA review | `qa` — valida cobertura de testes |
-| Aprovar PR | `tech-lead` |
-| Merge | `tech-lead`; `infra-devops` em PRs de CI/CD quando delegado |
-| Fechar issue | `product-owner` após merge |
-
-Regra central: **nenhum agente faz merge do próprio trabalho sem aprovação do `tech-lead`**.
-
----
-
-## Ferramentas Disponíveis
-
-Os agentes têm acesso sem prompt de permissão a:
+## Ferramentas disponíveis nos projetos filho
 
 | Ferramenta | Cobertura |
 |---|---|
 | `Bash(git:*)` | Todos os comandos git (exceto force push e reset hard) |
-| `Bash(gh:*)` | Todos os comandos gh CLI — issues, PRs, projects, workflows (exceto operações destrutivas) |
+| `Bash(gh:*)` | gh CLI — issues, PRs, projects, workflows (exceto operações destrutivas) |
 | `Bash(python/pytest/ruff/black/pip/uv:*)` | Desenvolvimento Python completo |
 | `WebSearch` / `WebFetch` | Pesquisa web e leitura de URLs |
 | MCP GitHub | Leitura e escrita de issues, PRs, branches, reviews |
@@ -198,39 +145,8 @@ Operações permanentemente bloqueadas: `git push --force`, `git reset --hard`, 
 
 ---
 
-## Slash Commands
-
-| Comando | O que faz |
-|---|---|
-| `/wizard` | Cria novo repositório a partir do template e chama `/kickoff` |
-| `/kickoff` | Discovery + backlog completo em todas as dimensões + aprovação — obrigatório ao iniciar |
-| `/review` | Dispara `tech-lead` e `security-auditor` em paralelo e consolida relatório |
-| `/fix-issue` | Identifica causa raiz e aplica correção mínima |
-| `/deploy` | Checklist de deploy |
-
----
-
-## CI
-
-Todo PR roda automaticamente:
-- `ruff check`
-- `black --check`
-- `pytest`
-
----
-
-## Arquivos Locais
-
-| Arquivo | Propósito |
-|---|---|
-| `.mcp.json` | Configuração local dos MCP servers — **não commitar** |
-| `CLAUDE.local.md` | Preferências pessoais locais — **não commitar** |
-| `.claude/settings.local.json` | Overrides locais de permissões — **não commitar** |
-
----
-
 ## Observações
 
-- No primeiro push do repo criado a partir do template, a workflow pode rodar antes de `GH_PAT` existir. Nessa situação ela cria labels e issue inicial e pula a criação do project. Depois que `GH_PAT` for configurado, rode `Setup Kanban` manualmente.
-- A API atual do GitHub permite criar a view `Board`, mas o agrupamento visual por `Status` ainda pode exigir ajuste manual na interface.
-- Para projetos que usam Docker, Terraform, npm ou conda, adicione as permissões correspondentes no `settings.json` do projeto — elas não estão no template por serem projeto-específicas.
+- No primeiro push do repo filho, a workflow pode rodar antes de `GH_PAT` existir — ela cria labels e issue inicial mas pula o board. Configure o secret e rode `Setup Kanban` manualmente.
+- A view `Board` é criada via API, mas o agrupamento visual por `Status` pode precisar de ajuste manual na interface do GitHub.
+- Para projetos com Docker, Terraform, npm ou conda, adicione as permissões no `settings.json` do filho — não estão no template por serem projeto-específicas.
