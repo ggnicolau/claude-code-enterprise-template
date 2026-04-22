@@ -5,8 +5,9 @@ Template base para novos projetos Python com Claude Code configurado, equipe mul
 ## O que este template entrega
 
 - **11 agentes especializados** com papéis claros e sem sobreposição de responsabilidades
-- **Kanban no GitHub Projects** configurado automaticamente via workflow
+- **Kanban no GitHub Projects** configurado automaticamente via workflow — com épicos template cobrindo todas as dimensões do projeto (negócio, produto, tech, lançamento)
 - **`/wizard`** para criar novos repositórios a partir do template com um comando
+- **`/kickoff`** para iniciar o projeto corretamente: discovery → backlog completo → aprovação → execução
 - **Permissões granulares** — agentes operam sem prompts desnecessários, com operações destrutivas bloqueadas
 - **Templates de `CLAUDE.md` e `AGENTS.md`** gerados por projeto ao criar via wizard
 
@@ -73,6 +74,8 @@ Cada agente pode spawnar **subagentes efêmeros** para tarefas que exigem isolam
 .claude/
   agents/                    # definições dos 11 agentes
   commands/
+    kickoff.md               # /kickoff — discovery + backlog + aprovação (obrigatório ao iniciar)
+    wizard.md                # /wizard — criação de novo repositório
     review.md                # /review — code review orquestrado
     deploy.md                # /deploy — checklist de deploy
     fix-issue.md             # /fix-issue — correcao de bug
@@ -100,7 +103,7 @@ AGENTS.md
 
 ## Como Criar um Novo Projeto
 
-### Via wizard (recomendado)
+### Via wizard + kickoff (recomendado)
 
 Em uma conversa nova neste projeto, use:
 
@@ -114,8 +117,15 @@ O wizard vai:
 3. Criar o repositório no GitHub
 4. Clonar localmente
 5. Configurar o secret `GH_PAT` (use um PAT dedicado com escopo mínimo: `repo`, `project`, `read:org`)
-6. Disparar a workflow `Setup Kanban`
+6. Disparar a workflow `Setup Kanban` — que já cria um backlog template com épicos de negócio, produto, tech, lançamento e operações
 7. Limpar arquivos de template e gerar `CLAUDE.md` e `AGENTS.md` específicos do projeto
+8. Chamar `/kickoff` automaticamente
+
+Em seguida, o `/kickoff` conduz:
+1. **Discovery** — entende o problema, usuários e critério de sucesso
+2. **Backlog completo** — `product-owner` refina os épicos template com o contexto do projeto
+3. **Aprovação** — usuário valida antes de qualquer execução
+4. **Delegação** — `project-manager` aciona os especialistas certos para as primeiras issues
 
 ### Via script direto
 
@@ -192,7 +202,8 @@ Operações permanentemente bloqueadas: `git push --force`, `git reset --hard`, 
 
 | Comando | O que faz |
 |---|---|
-| `/wizard` | Cria novo repositório a partir do template |
+| `/wizard` | Cria novo repositório a partir do template e chama `/kickoff` |
+| `/kickoff` | Discovery + backlog completo em todas as dimensões + aprovação — obrigatório ao iniciar |
 | `/review` | Dispara `tech-lead` e `security-auditor` em paralelo e consolida relatório |
 | `/fix-issue` | Identifica causa raiz e aplica correção mínima |
 | `/deploy` | Checklist de deploy |
