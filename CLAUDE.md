@@ -79,4 +79,4 @@ Skills base em `.agents/skills/` — uma por agente. Skills Caveman são opciona
 
 ## Iniciar Novo Projeto
 
-Em uma conversa nova, diga `iniciar` para rodar o wizard de criação de repositório.
+Em uma conversa nova, use `/project:wizard` para rodar o wizard de criação de repositório.
