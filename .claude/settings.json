@@ -4,8 +4,9 @@
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Gere um resumo conciso desta sessão em português (máximo 200 palavras). Inclua: decisões tomadas, tarefas concluídas, agentes envolvidos e próximos passos. Salve em `.claude/memory/sessions/user/` com nome `YYYY-MM-DD_HH-MM.md` usando a data/hora atual.",
+            "type": "command",
+            "command": "python .claude/hooks/save_summary.py",
+            "async": true,
             "statusMessage": "Salvando resumo da sessão..."
           }
         ]
@@ -15,8 +16,9 @@
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Gere um resumo conciso do que este agente fez nesta sessão em português (máximo 150 palavras). Inclua: agente responsável, tarefa executada, decisões tomadas, resultado e pendências. Salve em `.claude/memory/sessions/agents/` com nome `YYYY-MM-DD_HH-MM_<nome-do-agente>.md` usando a data/hora atual.",
+            "type": "command",
+            "command": "python .claude/hooks/save_summary.py",
+            "async": true,
             "statusMessage": "Salvando resumo do agente..."
           }
         ]

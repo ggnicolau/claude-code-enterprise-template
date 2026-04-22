@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Stop hook: salva resumo da sessão em .claude/memory/sessions/
-Requer: ANTHROPIC_API_KEY no ambiente para resumo automático.
+Stop/SubagentStop hook: salva resumo da sessão em .claude/memory/sessions/
+Não requer ANTHROPIC_API_KEY — extrai informações direto do transcript.
 """
 from __future__ import annotations
 
@@ -28,47 +28,61 @@ def read_transcript(transcript_path: str) -> list[dict]:
     return events
 
 
-def extract_text(events: list[dict]) -> str:
-    parts = []
+def extract_text_blocks(content) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                parts.append(block.get("text", "").strip())
+        return " ".join(parts)
+    return ""
+
+
+def build_summary(events: list[dict], agent_name: str | None = None) -> str:
+    user_messages, assistant_messages, tools_used = [], [], set()
+
     for event in events:
         role = event.get("role", "")
         content = event.get("content", "")
-        if isinstance(content, str) and content.strip():
-            parts.append(f"{role.capitalize()}: {content[:600]}")
-        elif isinstance(content, list):
-            for block in content:
-                if isinstance(block, dict) and block.get("type") == "text":
-                    text = block.get("text", "").strip()
-                    if text:
-                        parts.append(f"{role.capitalize()}: {text[:600]}")
-    return "\n".join(parts[-60:])
 
+        if role == "user":
+            text = extract_text_blocks(content)
+            if text and not text.startswith("{"):
+                user_messages.append(text[:300])
 
-def summarize(transcript_text: str) -> str:
-    try:
-        import anthropic
-        client = anthropic.Anthropic()
-        response = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=500,
-            messages=[{
-                "role": "user",
-                "content": (
-                    "Resumo conciso desta sessão Claude Code em português. "
-                    "Foque em: decisões tomadas, tarefas concluídas, agentes envolvidos, próximos passos. "
-                    "Máximo 200 palavras.\n\n"
-                    f"TRANSCRIPT:\n{transcript_text}"
-                ),
-            }],
-        )
-        return response.content[0].text
-    except ImportError:
-        return (
-            "Resumo automático indisponível — instale `anthropic` (`uv add anthropic`).\n\n"
-            "Últimas interações:\n" + "\n".join(transcript_text.split("\n")[-10:])
-        )
-    except Exception as e:
-        return f"Erro ao gerar resumo: {e}"
+        elif role == "assistant":
+            text = extract_text_blocks(content)
+            if text:
+                assistant_messages.append(text[:300])
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_use":
+                        tools_used.add(block.get("name", ""))
+
+    header = f"# Sessão do agente: {agent_name}\n" if agent_name else "# Sessão do usuário\n"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    lines = [
+        header,
+        f"**Data:** {timestamp}\n",
+    ]
+
+    if tools_used:
+        lines.append(f"**Ferramentas usadas:** {', '.join(sorted(tools_used))}\n")
+
+    if user_messages:
+        lines.append("\n## Últimas mensagens do usuário\n")
+        for msg in user_messages[-3:]:
+            lines.append(f"- {msg}\n")
+
+    if assistant_messages:
+        lines.append("\n## Últimas respostas do assistente\n")
+        for msg in assistant_messages[-3:]:
+            lines.append(f"- {msg}\n")
+
+    return "".join(lines)
 
 
 def main() -> int:
@@ -78,8 +92,6 @@ def main() -> int:
         return 0
 
     transcript_path = data.get("transcript_path", "")
-    session_id = data.get("session_id", "unknown")
-
     if not transcript_path:
         return 0
 
@@ -87,24 +99,22 @@ def main() -> int:
     if not events:
         return 0
 
-    text = extract_text(events)
-    if not text.strip():
-        return 0
+    # SubagentStop passa o nome do agente no evento
+    agent_name = data.get("agent_name") or data.get("subagent_name")
+    is_agent = bool(agent_name)
 
-    summary = summarize(text)
+    summary = build_summary(events, agent_name)
 
     project_dir = Path(os.environ.get("CLAUDE_PROJECT_DIR", "."))
-    sessions_dir = project_dir / ".claude" / "memory" / "sessions"
+    subdir = "agents" if is_agent else "user"
+    sessions_dir = project_dir / ".claude" / "memory" / "sessions" / subdir
     sessions_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    out = sessions_dir / f"{timestamp}_{session_id[:8]}.md"
-    out.write_text(
-        f"# Sessão {timestamp}\n\n"
-        f"**Session ID:** `{session_id}`\n\n"
-        f"## Resumo\n\n{summary}\n",
-        encoding="utf-8",
-    )
+    suffix = f"_{agent_name}" if agent_name else ""
+    out = sessions_dir / f"{timestamp}{suffix}.md"
+    out.write_text(summary, encoding="utf-8")
+
     return 0
 
 
