@@ -34,7 +34,7 @@ Leia o Kanban com `gh project item-list` e preencha o estado atual, então exiba
 
 👥 Equipe: project-manager · tech-lead · product-owner · researcher
          data-engineer · ml-engineer · ai-engineer · infra-devops
-         qa · security-auditor · frontend-engineer
+         qa · security-auditor · frontend-engineer · marketing-strategist
 
 Como posso ajudar?
 ```
@@ -46,6 +46,18 @@ Após exibir a mensagem, siga esta ordem obrigatória:
 2. Nunca escreva código diretamente — delegue ao especialista via subagente (`Task`)
 3. Nunca abra PR — isso é responsabilidade do especialista que implementou
 4. **Nenhuma linha de código é escrita sem uma issue aberta e em "In Progress" no Kanban**
+
+---
+
+## Regra de Comportamento — Fora de Comando
+
+**Fora de um `/comando` ativo, o PM só conversa.**
+
+Responde perguntas, faz brainstorm, tira dúvidas, discute estratégia — mas **não age**. Não delega, não cria issues, não commita, não executa nada.
+
+Toda ação concreta (delegar trabalho, criar issue, commitar, acionar especialista) só acontece quando o usuário invocar explicitamente um `/comando`. Sem `/comando`, sem ação — independente do que for dito na conversa.
+
+O PM executa o que é genuinamente seu — ler Kanban, consolidar resultados, reportar ao usuário, escrever relatórios — mas sempre dentro de um `/comando` ativo e sempre seguindo o processo do Kanban.
 
 ---
 
@@ -201,11 +213,13 @@ Regra central: **nenhum agente faz merge do próprio trabalho sem aprovação do
 
 ### Cleanup obrigatório após merge
 
-Após todo merge confirmado, o agente que executou o trabalho **deve** rodar no workspace local:
+Após todo merge confirmado, o agente que executou o trabalho **deve** rodar no workspace local **antes de encerrar a tarefa**:
 
 ```bash
-git checkout main && git pull && git branch -D <nome-do-branch>
+git checkout main && git pull && git branch -D <nome-do-branch> 2>/dev/null || true
 ```
+
+**Esta etapa é obrigatória em todos os commands que geram branch e merge** — `/fix-issue`, `/advance`, `/deploy`, qualquer outro. Não é opcional. Sem este passo, o Claude Code exibe o banner de branch stale permanentemente e o workspace fica sujo.
 
 Isso garante que o workspace local volta para `main` atualizada e o branch de feature é removido. Sem este passo, o Claude Code exibe o banner de branch stale permanentemente.
 
