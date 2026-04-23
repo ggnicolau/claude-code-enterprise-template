@@ -21,9 +21,10 @@ Para cada projeto, compare com o template:
 **Arquivos do template (fonte de verdade):**
 - `.claude/agents/*.md`
 - `.claude/commands/*.md` — exceto `wizard.md` e `sync-framework.md`
+- `scripts/templates/advance.md`, `scripts/templates/kickoff.md`, `scripts/templates/review-backlog.md` → comparados contra `.claude/commands/` do filho (esses commands chegam no filho via wizard, não via `.claude/commands/` do template)
 - `.agents/skills/**` — exceto qualquer pasta com nome iniciando em `caveman`
-- `scripts/templates/CLAUDE.md`
-- `scripts/templates/AGENTS.md`
+- `scripts/templates/CLAUDE.md` → comparado contra `CLAUDE.md` do filho (substituindo `{repo_name}` pelo nome do projeto antes de comparar)
+- `scripts/templates/AGENTS.md` → comparado contra `AGENTS.md` do filho (substituindo `{repo_name}` pelo nome do projeto antes de comparar)
 
 **Para cada arquivo, classifique:**
 - `NOVO` — existe no template mas não no filho
@@ -66,7 +67,8 @@ git checkout -b sync/framework-YYYY-MM-DD
 
 Copie os arquivos:
 - Agentes: copie `.claude/agents/<nome>.md` diretamente
-- Commands: copie `.claude/commands/<nome>.md` diretamente
+- Commands de `.claude/commands/`: copie diretamente
+- Commands de `scripts/templates/` (advance, kickoff, review-backlog): copie para `.claude/commands/` do filho
 - Skills: copie `.agents/skills/<nome>/` diretamente — pule pastas `caveman*`
 - `CLAUDE.md`: gere a partir de `scripts/templates/CLAUDE.md` substituindo `{repo_name}` pelo nome do projeto
 - `AGENTS.md`: gere a partir de `scripts/templates/AGENTS.md` substituindo `{repo_name}` pelo nome do projeto
@@ -103,5 +105,6 @@ Lembre ao usuário que precisa commitar e dar push em cada projeto sincronizado.
 - Se o usuário não passar argumentos, perguntar quais projetos sincronizar
 - **O template tem dois `CLAUDE.md`**: o root (`CLAUDE.md`) descreve o próprio template e **nunca vai para filhos**. O que vai para filhos é `scripts/templates/CLAUDE.md` (com `{repo_name}`), copiado para a raiz do filho como `CLAUDE.md`
 - **Nunca fazer `cp CLAUDE.md` do root do template** — sempre usar `scripts/templates/CLAUDE.md` como fonte
+- **`advance.md`, `kickoff.md`, `review-backlog.md` vivem em `scripts/templates/`**, não em `.claude/commands/` do template — nunca tratá-los como EXTRA quando encontrados no filho
 
 $ARGUMENTS
