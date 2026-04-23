@@ -310,8 +310,21 @@ def summarize_validation(
     env: dict[str, str],
     full_name: str,
     project_title: str,
+    *,
+    max_wait_seconds: int = 180,
+    poll_interval: int = 10,
 ) -> None:
+    deadline = time.monotonic() + max_wait_seconds
+    attempt = 0
     report = build_validation_report(env, full_name, project_title)
+    while not report.is_valid and time.monotonic() < deadline:
+        attempt += 1
+        if attempt == 1:
+            print(
+                f"\nAguardando workflow Setup Kanban concluir (ate {max_wait_seconds}s)..."
+            )
+        time.sleep(poll_interval)
+        report = build_validation_report(env, full_name, project_title)
 
     print("\nValidacao")
     print(f"- Repositorio: {report.repo_url}")

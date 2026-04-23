@@ -2,7 +2,7 @@
 
 Use a ferramenta `AskUserQuestion` para coletar as respostas abaixo uma de cada vez:
 
-1. **Nome do repositório** — campo de texto livre (permitir escrita livre)
+1. **Nome do repositório** — usar `AskUserQuestion` com as opções fixas `Digitar nome do repositório` e `Cancelar wizard`. O usuário seleciona "Outro" (campo automático do widget) para digitar o nome desejado. Se escolher `Cancelar wizard`, encerre o fluxo.
 2. **Visibilidade** — escolha estrita: `Privado` ou `Público` (sem opção de escrita livre)
 3. **Instalar skills Caveman?** — escolha estrita: `Sim` ou `Não` (sem opção de escrita livre)
 
