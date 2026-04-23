@@ -31,8 +31,10 @@ graph TD
     PM --> PO["📋 Product Owner\nkanban + roadmap"]
     PM --> TL["🧠 Tech Lead\norquestrador técnico + docs"]
     PM --> RES["🔍 Researcher\npesquisa técnica e de produto"]
+    PM --> MKT["📣 Marketing Strategist\ngo-to-market + mídia"]
 
     PO --> RES
+    PO --> MKT
     PO --> KB[("GitHub Kanban")]
 
     TL --> DE["🔧 Data Engineer\npipelines + ETL"]
