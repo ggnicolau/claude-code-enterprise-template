@@ -206,6 +206,25 @@ Ao criar o backlog (via `/kickoff` ou `/review-backlog`), o `product-owner` **se
 
 ---
 
+## Regras de Branches
+
+```
+feature/* → dev → main
+```
+
+| Branch | Quem usa | Regra |
+|---|---|---|
+| `feature/*` ou `fix/*` | agentes especialistas | todo trabalho começa aqui |
+| `dev` | integração contínua | recebe PRs de feature; nunca push direto |
+| `main` | produção estável | recebe PRs de `dev`; só quando o usuário pedir explicitamente |
+
+**Regras obrigatórias:**
+- Nunca fazer push direto em `dev` ou `main` — sempre branch + PR
+- Mudanças em `.claude/`, `CLAUDE.md`, `AGENTS.md` também seguem essa regra — nunca push direto
+- `main` só recebe merge quando o usuário pedir explicitamente
+
+---
+
 ## Regras de Código e PR
 
 | Etapa | Responsável |

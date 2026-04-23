@@ -58,7 +58,13 @@ Aguarde confirmação explícita antes de prosseguir.
 
 ### Passo 5 — Sincronizar
 
-Para cada arquivo NOVO ou DESATUALIZADO:
+Para cada arquivo NOVO ou DESATUALIZADO, **não commite direto** — crie um branch e abra PR:
+
+```bash
+git checkout -b sync/framework-YYYY-MM-DD
+```
+
+Copie os arquivos:
 - Agentes: copie `.claude/agents/<nome>.md` diretamente
 - Commands: copie `.claude/commands/<nome>.md` diretamente
 - Skills: copie `.agents/skills/<nome>/` diretamente — pule pastas `caveman*`
@@ -66,6 +72,15 @@ Para cada arquivo NOVO ou DESATUALIZADO:
 - `AGENTS.md`: gere a partir de `scripts/templates/AGENTS.md` substituindo `{repo_name}` pelo nome do projeto
 
 Nunca toque em arquivos classificados como `EXTRA`.
+
+Após copiar, commit e abra PR para `dev`:
+
+```bash
+git add .claude/ .agents/ CLAUDE.md AGENTS.md
+git commit -m "chore: sync framework from template"
+git push -u origin sync/framework-YYYY-MM-DD
+gh pr create --base dev --title "chore: sync framework from template" --body "Sincronização automática via /sync-framework."
+```
 
 ### Passo 6 — Reportar resultado
 
