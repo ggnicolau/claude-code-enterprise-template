@@ -224,9 +224,15 @@ def cleanup_template_files(destination: Path, repo_name: str) -> None:
     )
     subprocess.run(["git", "push"], cwd=destination, check=True, capture_output=True)
 
+    # Cria branch dev a partir de main
+    subprocess.run(["git", "checkout", "-b", "dev"], cwd=destination, check=True, capture_output=True)
+    subprocess.run(["git", "push", "-u", "origin", "dev"], cwd=destination, check=True, capture_output=True)
+    subprocess.run(["git", "checkout", "main"], cwd=destination, check=True, capture_output=True)
+
     if removed:
         print(f"- Arquivos de template removidos: {', '.join(removed)}")
     print("- CLAUDE.md e AGENTS.md gerados para o projeto.")
+    print("- Branch 'dev' criado e publicado.")
 
 
 def build_local_clone_path(repo_name: str, base_dir: Path | None = None) -> Path:
