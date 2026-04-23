@@ -104,6 +104,39 @@ O ponto de entrada é o `project-manager`. Rode `/kickoff` para iniciar o projet
 
 ---
 
+## Mapa de Interações entre Agentes
+
+| Agente | Responde a | Trabalha com |
+|---|---|---|
+| **project-manager** | Usuário | product-owner, tech-lead, researcher, marketing-strategist |
+| **product-owner** | project-manager | researcher, marketing-strategist, kanban |
+| **tech-lead** | project-manager | data-engineer, ml-engineer, ai-engineer, infra-devops, qa, security-auditor, frontend-engineer, researcher |
+| **researcher** | PM / PO / TL (quem acionar) | todos os agentes que precisam de inteligência de mercado ou técnica |
+| **marketing-strategist** | PM / PO (quem acionar) | researcher |
+| **data-engineer** | tech-lead | researcher, qa |
+| **ml-engineer** | tech-lead | data-engineer, researcher |
+| **ai-engineer** | tech-lead | researcher, ml-engineer |
+| **infra-devops** | tech-lead | security-auditor |
+| **frontend-engineer** | tech-lead | infra-devops, researcher |
+| **qa** | tech-lead | data-engineer, ml-engineer |
+| **security-auditor** | tech-lead / infra-devops | infra-devops |
+
+---
+
+## Ferramentas Disponíveis
+
+| Ferramenta | Cobertura |
+|---|---|
+| `Bash(git:*)` | Todos os comandos git (exceto force push e reset hard) |
+| `Bash(gh:*)` | gh CLI — issues, PRs, projects, workflows (exceto operações destrutivas) |
+| `Bash(python/pytest/ruff/black/pip/uv:*)` | Desenvolvimento Python completo |
+| `WebSearch` / `WebFetch` | Pesquisa web e leitura de URLs |
+| MCP GitHub | Leitura e escrita de issues, PRs, branches, reviews |
+
+Operações permanentemente bloqueadas: `git push --force`, `git reset --hard`, `git clean -f`, `gh repo delete`, `gh secret set/delete`, `gh auth login/token`.
+
+---
+
 ## Status
 
 Acompanhe o progresso no [GitHub Projects](https://github.com/<org>/{repo_name}/projects).
