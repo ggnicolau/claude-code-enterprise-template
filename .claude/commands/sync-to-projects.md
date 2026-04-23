@@ -6,6 +6,8 @@ Sincroniza os arquivos de framework do template para os projetos filhos informad
 
 Os projetos são resolvidos relativamente ao diretório pai deste template (`../`).
 
+> **Este comando só vai do template para os filhos.** Para propagar melhorias de um filho de volta ao template, use `/sync-to-template`.
+
 ---
 
 ## Processo obrigatório

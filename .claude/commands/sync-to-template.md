@@ -6,6 +6,8 @@ Propaga melhorias de um projeto filho de volta para o template. Use quando o fil
 
 O projeto é resolvido relativamente ao diretório pai do template (`../`).
 
+> **Este comando só vai do filho para o template.** Para propagar melhorias do template para os filhos, use `/sync-to-projects`.
+
 ---
 
 ## Processo obrigatório
