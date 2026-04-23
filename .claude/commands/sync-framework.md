@@ -24,7 +24,6 @@ Para cada projeto, compare com o template:
 - `.agents/skills/**` — exceto qualquer pasta com nome iniciando em `caveman`
 - `scripts/templates/CLAUDE.md`
 - `scripts/templates/AGENTS.md`
-- `scripts/templates/README.md`
 
 **Para cada arquivo, classifique:**
 - `NOVO` — existe no template mas não no filho
@@ -65,7 +64,6 @@ Para cada arquivo NOVO ou DESATUALIZADO:
 - Skills: copie `.agents/skills/<nome>/` diretamente — pule pastas `caveman*`
 - `CLAUDE.md`: gere a partir de `scripts/templates/CLAUDE.md` substituindo `{repo_name}` pelo nome do projeto
 - `AGENTS.md`: gere a partir de `scripts/templates/AGENTS.md` substituindo `{repo_name}` pelo nome do projeto
-- `README.md`: gere a partir de `scripts/templates/README.md` substituindo `{repo_name}` pelo nome do projeto
 
 Nunca toque em arquivos classificados como `EXTRA`.
 
