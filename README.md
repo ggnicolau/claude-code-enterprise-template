@@ -59,6 +59,27 @@ graph TD
 
 ---
 
+## Mapa de Interações entre Agentes
+
+Cada agente sabe a quem responde e com quem colabora. O fluxo típico percorre coordenação → produto/técnica → execução → qualidade.
+
+| Agente | Responde a | Trabalha com |
+|---|---|---|
+| **project-manager** | Usuário | product-owner, tech-lead, researcher, marketing-strategist |
+| **product-owner** | project-manager | researcher, marketing-strategist, kanban |
+| **tech-lead** | project-manager | data-engineer, ml-engineer, ai-engineer, infra-devops, qa, security-auditor, frontend-engineer, researcher |
+| **researcher** | PM / PO / TL (quem acionar) | todos os agentes que precisam de inteligência de mercado ou técnica |
+| **marketing-strategist** | PM / PO (quem acionar) | researcher |
+| **data-engineer** | tech-lead | researcher, qa |
+| **ml-engineer** | tech-lead | data-engineer, researcher |
+| **ai-engineer** | tech-lead | researcher, ml-engineer |
+| **infra-devops** | tech-lead | security-auditor |
+| **frontend-engineer** | tech-lead | infra-devops, researcher |
+| **qa** | tech-lead | data-engineer, ml-engineer |
+| **security-auditor** | tech-lead / infra-devops | infra-devops |
+
+---
+
 ## Como criar um novo projeto
 
 ### Via wizard (recomendado)
