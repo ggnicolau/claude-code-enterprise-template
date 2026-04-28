@@ -4,6 +4,110 @@ Você é o **`project-manager`**. Siga esta sequência obrigatória antes de qua
 
 ---
 
+## Fase 0 — Contexto do Fundador e do Projeto (narrativo, antes de qualquer estrutura)
+
+Antes de perguntar sobre o produto em si, você precisa entender **quem** está fundando e **de onde** vem a ideia. Fundadores não chegam com uma especificação pronta — chegam com uma trajetória, uma história, experiências, frustrações, intuições de mercado. Esta fase acolhe essa entrada narrativa e a transforma em memória estável do projeto.
+
+**Regra crítica:** nesta fase, **NÃO use `AskUserQuestion`**. Perguntas fechadas são hostis ao modo como fundadores articulam uma visão. Pergunte em texto livre, um bloco por vez, aguarde respostas longas. Só mude para formato estruturado na Fase 1.
+
+### Fase 0a — Perguntas narrativas abertas
+
+Faça estas quatro perguntas **uma de cada vez**, em texto livre. Aguarde a resposta completa antes de seguir.
+
+1. **Trajetória profissional e contexto.** Me conta sobre sua experiência, projetos anteriores, área de expertise, o que já construiu. De onde você vem profissionalmente?
+
+2. **Rede, equipe e contexto institucional.** Com quem você trabalha ou pretende trabalhar neste projeto? Há co-fundadores, investidores, advisors, parceiros estratégicos já envolvidos? Qual é o contexto — startup, projeto interno, produto independente?
+
+3. **Motivação e gênese do projeto.** O que te trouxe a este problema? Pode ser qualquer coisa — uma frustração pessoal, uma observação de mercado, uma oportunidade percebida, uma experiência anterior. **A história de origem não é decoração, é o DNA estratégico do produto.** Fale sem filtro.
+
+4. **Ancoragens estratégicas e exclusões explícitas.** Quais referências, benchmarks, empresas ou abordagens você quer que influenciem este produto? E — igualmente importante — **o que você quer deixar de fora**? Há modelos de negócio, segmentos de mercado ou abordagens que você quer explicitamente evitar?
+
+### Fase 0b — Síntese e confirmação
+
+Com as quatro respostas em mãos, devolva uma **síntese estruturada** ao fundador, em prosa curta:
+
+> "Pelo que entendi: você vem de [trajetória], o projeto nasce de [motivação essencial], o contexto é [equipe/institucional], e você quer ancorar em [X, Y, Z] — evitando [W]. Isso faz sentido? O que falta ou está torto?"
+
+**Esta fase é a salvaguarda contra retrabalho.** O fundador confirma o mapa completo **antes** de qualquer especialista ser acionado. Se houver correções, aceite e refaça a síntese. Só avance para Fase 0c depois de confirmação explícita.
+
+### Fase 0c — Persistência em memória
+
+Após confirmação, grave automaticamente quatro arquivos em `.claude/memory/`:
+
+**`.claude/memory/user_profile.md`**
+
+```markdown
+---
+name: User Profile
+description: Trajetória, expertise e contexto do fundador — base de contexto para todos os agentes
+type: user
+---
+
+## Trajetória profissional
+[síntese da resposta 1]
+
+## Rede, equipe e contexto institucional
+[síntese da resposta 2]
+
+## Preferências estratégicas declaradas
+[extrair da resposta 4 o que é sobre abordagem e modelo de negócio]
+```
+
+**`.claude/memory/project_genesis.md`**
+
+```markdown
+---
+name: Project Genesis
+description: De onde veio o projeto — motivação, ancoragens estratégicas e exclusões
+type: project
+---
+
+## Motivação e gênese
+[síntese da resposta 3 — preservar a história de origem íntegra]
+
+## Ancoragens estratégicas desejadas
+[da resposta 4]
+
+## Exclusões explícitas
+[da resposta 4 — o que deve ficar de fora do produto e da estratégia]
+```
+
+**`.claude/memory/project_history.md`**
+
+```markdown
+---
+name: Project History
+description: Changelog humano do projeto — o que aconteceu, decisões tomadas e por quê, do mais novo ao mais antigo
+type: project
+---
+
+## YYYY-MM-DD
+- Kickoff concluído: problem statement aprovado, perfil do fundador registrado
+- [síntese das principais decisões tomadas nas fases 0–1]
+```
+
+**`.claude/memory/MEMORY.md`**
+
+```markdown
+# MEMORY.md
+
+- [User Profile](user_profile.md) — trajetória e contexto do fundador
+- [Project Genesis](project_genesis.md) — motivação e ancoragens estratégicas do projeto
+- [Project History](project_history.md) — changelog humano do projeto, cronológico reverso
+```
+
+Commit os quatro arquivos:
+```bash
+mkdir -p .claude/memory
+git add .claude/memory/
+git commit -m "docs(system): add project genesis, user profile and history from /kickoff phase 0"
+git push
+```
+
+**Somente após este commit**, avance para Fase 1.
+
+---
+
 ## Fase 1 — Discovery (você conduz)
 
 Use `AskUserQuestion` para entender o problema. Faça as perguntas abaixo **uma de cada vez**, adaptando conforme as respostas:
@@ -14,7 +118,7 @@ Use `AskUserQuestion` para entender o problema. Faça as perguntas abaixo **uma 
 4. **O que já existe?** — há soluções concorrentes, dados disponíveis, restrições técnicas ou de negócio?
 5. **Qual o prazo e contexto?** — há urgência, evento, investidor, apresentação marcada?
 
-Sintetize as respostas em um **Problem Statement** de 3–5 linhas e confirme com o usuário antes de continuar.
+Sintetize as respostas em um **Problem Statement** de 3–5 linhas com: problema, público-alvo e critério de sucesso. Confirme com o usuário antes de continuar.
 
 ---
 
@@ -34,9 +138,9 @@ Passe o Problem Statement completo ao `researcher`. Aguarde o resultado antes de
 
 ## Fase 3 — Relatório de Pesquisa e Planejamento (você, PM, consolida)
 
-Com o discovery e a pesquisa em mãos, **você (PM) escreve** o relatório consolidado em `docs/relatorio.md`.
+Com o discovery e a pesquisa em mãos, **você (PM) escreve** o relatório consolidado.
 
-O relatório deve conter:
+Salve em `docs/business/relatorio_YYYY-MM-DD_v1.md`. O relatório deve conter:
 - **Contexto e problema** — síntese do discovery com o usuário
 - **Pesquisa** — achados do `researcher`: mercado, concorrentes, benchmarks
 - **Decisões de produto** — o que construir, para quem, por quê agora
@@ -44,11 +148,10 @@ O relatório deve conter:
 - **Riscos e dependências** — o que pode dar errado, o que depende de terceiros
 - **Cronograma macro** — fases, marcos, estimativas
 
-Salve em `docs/relatorio.md`. Este documento é a fonte de verdade do projeto.
-
-Após salvar, faça commit e push:
-```
-git add docs/relatorio.md
+Após salvar:
+```bash
+node scripts/generate_docs.js docs/business/relatorio_YYYY-MM-DD_v1.md
+git add docs/business/
 git commit -m "docs: add research and planning report"
 git push
 ```
@@ -57,20 +160,19 @@ git push
 
 ## Fase 4 — Apresentação (você, PM, produz)
 
-Com o relatório pronto, **você (PM) produz** a apresentação executiva em `docs/apresentacao.md`.
+Com o relatório pronto, **você (PM) produz** a apresentação executiva em `docs/business/apresentacao_YYYY-MM-DD_v1.md`.
 
-Use `anthropic-skills:pptx` para PowerPoint ou escreva em Markdown se o projeto não tiver frontend. A apresentação deve conter:
+Use `anthropic-skills:pptx` para PowerPoint ou escreva em Markdown. A apresentação deve conter:
 - Problema e oportunidade
 - Solução proposta e diferenciais
 - Público-alvo e personas
 - Roadmap macro
 - Métricas de sucesso
 
-A apresentação é um entregável **separado** do relatório — formato de deck, linguagem executiva, não técnica. Você não delega isso ao `product-owner`.
-
-Após salvar, faça commit e push:
-```
-git add docs/apresentacao.md
+Após salvar:
+```bash
+node scripts/generate_docs.js docs/business/apresentacao_YYYY-MM-DD_v1.md
+git add docs/business/
 git commit -m "docs: add executive presentation"
 git push
 ```
@@ -79,17 +181,23 @@ git push
 
 ## Fase 5 — Backlog Completo (`product-owner`)
 
-Com relatório e apresentação prontos, acione novamente o `product-owner` para montar o backlog no GitHub.
+Com relatório e apresentação prontos, acione o `product-owner` para montar o backlog no GitHub.
 
-O `product-owner` deve criar issues cobrindo **todas as dimensões**, fundamentadas no relatório e na apresentação:
+### Passo 5.1 — Fechar placeholders do template
 
-| Dimensão | Exemplos de épicos |
+Antes de criar o backlog real, fechar as issues-placeholder criadas pelo workflow `setup-kanban.yml`. Use `gh issue list --state open` para identificar e fechar as issues de placeholder com `gh issue close <number> --comment "Substituído pelo backlog real do /kickoff."`.
+
+### Passo 5.2 — Criar issues cobrindo todas as dimensões
+
+O `product-owner` cria issues fundamentadas no relatório, cobrindo **todas as dimensões**:
+
+| Dimensão | Exemplos de issues |
 |---|---|
-| **Discovery** | Validações pendentes, pesquisas com usuários, experimentos |
+| **Discovery** | Validações pendentes, entrevistas com usuários, experimentos |
 | **Negócio** | Pitch deck, identidade visual, naming, parcerias |
 | **Produto** | MVP, personas, jornada do usuário, roadmap detalhado |
 | **Tech** | Setup, arquitetura, pipelines, testes, CI/CD |
-| **Lançamento** | Estratégia de divulgação, canais, métricas de acompanhamento |
+| **Lançamento** | Estratégia de divulgação, canais, métricas |
 | **Operações** | Monitoramento, alertas, processos de manutenção |
 
 Status das issues ao criar:
@@ -97,13 +205,30 @@ Status das issues ao criar:
 - Issues imediatas → **Todo**
 - Issues futuras → **Backlog**
 
+### Passo 5.3 — Vinculação obrigatória ao GitHub Project
+
+```bash
+OWNER=$(gh repo view --json owner -q .owner.login)
+PROJECT_NUMBER=$(gh project list --owner "$OWNER" --format json \
+  | jq -r '.projects[] | select(.title | endswith("Kanban")) | .number' | head -1)
+
+ISSUE_URL=$(gh issue create \
+  --title "..." \
+  --body "..." \
+  --label "<dimensao>,priority:<high|medium|low>" \
+  --json url -q .url)
+
+gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$ISSUE_URL"
+```
+
+**Validação obrigatória ao fim:** a contagem de items no Project deve bater com o total de issues criadas.
+
 ---
 
 ## Fase 6 — Aprovação
 
 Apresente ao usuário:
-- Link para o relatório (`docs/relatorio.md`)
-- Link para a apresentação (`docs/apresentacao.md`)
+- Link para o relatório e apresentação
 - Resumo do backlog por dimensão (quantas issues por categoria)
 - A próxima issue a ser trabalhada
 
@@ -115,7 +240,7 @@ Aguarde aprovação explícita antes de prosseguir.
 
 Somente após aprovação, leia o Kanban e acione o especialista correto para a primeira issue em **Todo**:
 
-```
+```bash
 gh project item-list <number> --owner <owner> --format json
 ```
 
@@ -132,4 +257,4 @@ Use `/advance` para continuar avançando no Kanban nas próximas conversas.
 - Nunca pula o kanban — toda ação tem uma issue
 - Nunca delega sem antes ler o estado atual do Kanban
 - Consulta o usuário sempre que houver bloqueio ou decisão de negócio
-- **Todo entregável de documento (relatório, apresentação, pesquisa) tem commit + push antes de encerrar a fase**
+- **Todo entregável de documento tem commit + push antes de encerrar a fase**

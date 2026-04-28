@@ -26,7 +26,19 @@ Sua **primeira ação obrigatória** em toda conversa é exibir ao usuário a me
 
 ### Mensagem de orientação (exibir ao usuário no início de toda conversa)
 
-Leia o Kanban com `gh project item-list` e preencha o estado atual, então exiba:
+O Kanban já está disponível no contexto da sessão — foi exibido pelo hook de inicialização no `system-reminder` de `SessionStart`. Use esse output diretamente para construir o estado atual. Não rode `gh` nem nenhum outro comando.
+
+Para construir o 📋 Estado atual, use o output do hook na seguinte ordem de raciocínio:
+
+1. **Últimas entregas** — a seção `[RECENTES]` lista as issues fechadas mais recentes com data. Agrupe-as tematicamente e destaque o que foi concluído por último.
+2. **Onde estamos** — com base no que foi entregue, infira o estágio atual do projeto.
+3. **O que vem agora** — identifique 2-3 prioridades concretas com número de issue e contexto. Prefira items em 'In Progress' ou 'Review'; se vazios, use os primeiros em 'Todo'.
+
+Se identificar cards em `[DONE]` com issue ainda aberta, ou issues com WARNING 'issue fechada mas card nao esta em Done', o board está desatualizado — sugira `/review-backlog` ao final da mensagem.
+
+Items com prefixo `[START]` são scaffolding criado automaticamente pelo template — não representam histórico do projeto. Se as issues/cards são apenas `[START]` e 'Getting Started', o projeto ainda não foi iniciado — sugira `/kickoff`.
+
+Exiba a mensagem neste formato:
 
 ```
 🗂️ {repo_name} — Project Manager
@@ -40,6 +52,8 @@ Leia o Kanban com `gh project item-list` e preencha o estado atual, então exiba
   /review           → code review de um PR
   /deploy           → deploy
   /fix-issue        → corrigir um bug
+  /update-memory    → atualizar a memória do projeto
+  /clean            → commitar e fazer push de tudo pendente
 
 👥 Equipe: project-manager · tech-lead · product-owner · researcher
          data-engineer · ml-engineer · ai-engineer · infra-devops
@@ -137,6 +151,38 @@ Regras:
 
 ---
 
+## Versionamento de Documentos
+
+Todo documento em `docs/` segue a convenção obrigatória de versionamento — nunca sobrescreva uma versão anterior.
+
+### Convenção de nome
+
+```
+docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md
+```
+
+Exemplos: `relatorio_2026-04-28_v1.md`, `apresentacao_2026-04-28_v2.md`, `arquitetura_2026-04-28_v1.md`
+
+### Fluxo de revisão
+
+Ao revisar um documento existente:
+1. `git mv docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md docs/<subdir>/archive/{nome}_YYYY-MM-DD_v{N}.md`
+2. Criar `docs/<subdir>/{nome}_YYYY-MM-DD_v{N+1}.md` com o conteúdo revisado
+3. `git commit -m "docs: revise {nome} v{N} → v{N+1} ({motivo})"`
+
+A pasta `archive/` é gerada automaticamente pelo `generate_docs.js` — não deletar arquivos de archive.
+
+### Geração de PDF/DOCX/PPTX
+
+O hook `post_write.sh` dispara automaticamente `scripts/generate_docs.js` ao salvar qualquer `.md` em `docs/`. O gerador produz os arquivos em `docs/<subdir>/generated/` espelhando a estrutura de origem (incluindo `archive/`).
+
+Para rodar manualmente:
+```bash
+node scripts/generate_docs.js docs/<subdir>/{nome}.md
+```
+
+---
+
 ## Equipe Multi-Agentes
 
 Este projeto inclui 11 agentes em `.claude/agents/`. O ponto de entrada padrão é o `project-manager`.
@@ -223,6 +269,30 @@ feature/* → dev → main
 - Mudanças em `.claude/`, `CLAUDE.md`, `AGENTS.md` também seguem essa regra — nunca push direto
 - `main` só recebe merge quando o usuário pedir explicitamente
 
+## Convenção de Commits
+
+Todos os commits seguem **Conventional Commits** com escopo obrigatório para diferenciar infraestrutura agentic de trabalho de produto:
+
+| Escopo | Quando usar | Exemplos |
+|---|---|---|
+| `(system)` | Mudanças no sistema agentic: `.claude/`, `CLAUDE.md`, agentes, hooks, memória, scripts | `docs(system): atualizar project_history`, `chore(system): adicionar hook post_write` |
+| sem escopo | Trabalho de produto: código, features, docs de produto, testes | `feat: implementar autenticação JWT`, `docs: add research report` |
+
+**Regra:** mudanças de infraestrutura agentic nunca se misturam com commits de produto no mesmo commit.
+
+## Memória Persistente
+
+O projeto mantém memória persistente em `.claude/memory/` — criada pela Fase 0 do `/kickoff` e atualizada via `/update-memory`.
+
+| Arquivo | Conteúdo | Quem lê |
+|---|---|---|
+| `MEMORY.md` | Índice com links para os outros arquivos | project-manager, tech-lead |
+| `user_profile.md` | Trajetória, rede e preferências do fundador | project-manager, tech-lead |
+| `project_genesis.md` | Motivação fundadora, ancoragens estratégicas, exclusões | project-manager, tech-lead |
+| `project_history.md` | Changelog humano — decisões, entregáveis, restrições | project-manager, tech-lead |
+
+**Regra:** somente o `project-manager` e o `tech-lead` leem a memória antes de agir. Os especialistas recebem contexto relevante via prompt de delegação — não lêem a memória diretamente.
+
 ## Autenticação GitHub
 
 Dois mecanismos disponíveis — use o adequado para cada operação:
@@ -282,6 +352,28 @@ Nunca rodar `git pull origin main` estando em outro branch — isso mistura hist
 
 ---
 
+## Sessões Cloud — Rastreabilidade
+
+Ao abrir PR ou commitar entregável em sessão cloud, incluir no corpo do PR o link da sessão:
+
+```bash
+[ -n "$CLAUDE_CODE_REMOTE_SESSION_ID" ] && echo "Sessão: https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID}"
+```
+
+Se `CLAUDE_CODE_REMOTE_SESSION_ID` não existir (sessão local), omitir — sem erro, sem placeholder.
+
+---
+
+## Contexto em Sessões Cloud
+
+Em sessões cloud, os comandos de contexto se comportam diferente:
+
+- `/compact` → disponível — resume a conversa e libera contexto; aceita instruções de foco (ex: `/compact manter output dos testes`)
+- `/clear` (comando interno do Claude) → **não disponível** em cloud — usar `/compact` no lugar
+- `/clean` (command do projeto) → funciona normalmente em qualquer ambiente
+
+---
+
 ## Commands Disponíveis
 
 | Command | Quando usar |
@@ -293,13 +385,28 @@ Nunca rodar `git pull origin main` estando em outro branch — isso mistura hist
 | `/deploy` | Acionar infra-devops para deploy |
 | `/fix-issue` | Acionar especialista para corrigir um bug ou problema reportado |
 | `/clean` | Commitar e fazer push de tudo que está pendente localmente, de forma segura |
+| `/update-memory` | Atualizar memória do projeto — registrar decisões, restrições e entregáveis aprovados |
 
 ---
 
 ## Skills Disponíveis
 
-Skills base em `.agents/skills/` — uma por agente. Skills Caveman são opcionais:
+Skills em `.agents/skills/` — referenciadas formalmente nos agentes.
 
+**Skills de domínio enterprise:**
+- `product-management` — backlog, priorização, critérios de aceitação
+- `code-review` — revisão de PRs com severidade 🔴🟡🔵
+- `data-engineering` — pipelines, ETL, qualidade de dados
+- `ml-engineering` — experimentos, modelos, produção
+- `ai-engineering` — LLMs, RAG, agentes, evals
+- `frontend-engineering` — UI/UX, acessibilidade, responsividade
+- `security-audit` — OWASP, vulnerabilidades, secrets
+- `qa-testing` — pirâmide de testes, cobertura, boas práticas
+- `market-research` — mercado, competidores, benchmarks
+- `go-to-market` — GTM, posicionamento, funil
+- `infra-devops` — IaC, CI/CD, deploy, observabilidade
+
+**Skills Caveman (opcionais — instaladas pelo `/wizard`):**
 - `caveman` — comunicação ultra-comprimida (~75% menos tokens)
 - `caveman-commit` — mensagens de commit comprimidas
 - `caveman-review` — code review em uma linha por finding
