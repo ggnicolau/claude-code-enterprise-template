@@ -9,6 +9,7 @@
       "Bash(uv:*)",
       "Bash(git:*)",
       "Bash(gh:*)",
+      "Agent(*)",
       "WebSearch(*)",
       "WebFetch(*)",
       "mcp__github__get_file_contents",
@@ -63,5 +64,33 @@
       "PowerShell(git push --force*)",
       "PowerShell(git reset --hard*)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/session_start.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/post_write.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "95"
   }
 }

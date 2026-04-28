@@ -241,6 +241,14 @@ def cleanup_template_files(destination: Path, repo_name: str) -> None:
         for cmd_file in commands_dir.glob("*.md"):
             (dest_commands / cmd_file.name).write_text(cmd_file.read_text(encoding="utf-8"), encoding="utf-8")
 
+    # Copia agentes de scripts/templates/agents/ para .claude/agents/ do filho
+    agents_dir = templates_dir / "agents"
+    if agents_dir.exists():
+        dest_agents = destination / ".claude" / "agents"
+        dest_agents.mkdir(parents=True, exist_ok=True)
+        for agent_file in agents_dir.glob("*.md"):
+            (dest_agents / agent_file.name).write_text(agent_file.read_text(encoding="utf-8"), encoding="utf-8")
+
     # Copia arquivos example do template para o filho
     for example_file in (".env.example", ".mcp.json.example", "CLAUDE.local.md.example"):
         src = ROOT / example_file

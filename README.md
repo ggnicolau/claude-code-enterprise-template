@@ -12,13 +12,21 @@ Template base para criar novos projetos Python com Claude Code configurado, equi
 |---|---|
 | **12 agentes especializados** | `project-manager`, `tech-lead`, `product-owner`, `data-engineer`, `ml-engineer`, `ai-engineer`, `infra-devops`, `qa`, `researcher`, `security-auditor`, `frontend-engineer`, `marketing-strategist` — com organograma, cadeia de comando e protocolo de escalation |
 | **Kanban pré-populado** | Épicos template em 6 dimensões: Discovery, Negócio, Produto, Tech, Lançamento, Operações |
-| **`/kickoff`** | Inicia o projeto: discovery → pesquisa (`researcher`) → relatório + apresentação (PM) → backlog completo (PO) → aprovação → delegação |
+| **`/kickoff`** | Inicia o projeto com **Fase 0 narrativa** (contexto do fundador, gênese, ancoragens, exclusões) → persiste memória → discovery → pesquisa (`researcher`) → relatório + apresentação (PM) → backlog completo (PO) → aprovação → delegação |
 | **`/advance`** | Avança no Kanban: fecha prontos (PO), valida issues com PO, paraleliza issues independentes, delega via TL |
 | **`/review-backlog`** | Varredura proativa: fecha prontos, identifica lacunas, refina e cria novas issues (PO + TL) |
 | **`/review`, `/deploy`, `/fix-issue`** | Code review, deploy e correção de bugs |
+| **`/clean`** | Limpeza de branches, arquivos temporários e estados inconsistentes |
+| **`/update-memory`** | Registrar decisões de produto, restrições e entregáveis aprovados na memória persistente |
 | **CI/CD** | GitHub Actions com ruff, black e pytest em todo PR |
 | **`CLAUDE.md` e `AGENTS.md`** | Gerados com o nome do projeto, com regras de persona, kanban e delegação |
 | **Permissões granulares** | Agentes operam sem prompts desnecessários; operações destrutivas bloqueadas |
+| **Memória persistente** | `.claude/memory/user_profile.md`, `project_genesis.md`, `project_history.md` e `MEMORY.md` criados na Fase 0 do `/kickoff` — somente project-manager e tech-lead leem antes de agir |
+| **Hook de sessão** | `session_start.sh` exibe automaticamente o Kanban ao iniciar cada sessão — últimas entregas, cards ativos, inconsistências board/issue |
+| **Gerador PDF/DOCX/PPTX** | `scripts/generate_docs.js` — MDs em `docs/` ganham contraparte em `docs/<sub>/generated/` via hook `post_write.sh` |
+| **Versionamento de documentos** | Convenção `{nome}_YYYY-MM-DD_v{N}.md` com pasta `archive/` — agentes nunca sobrescrevem versão anterior |
+| **Convenção de commits** | Escopo `(system)` para infra agentic vs. sem escopo para trabalho de produto |
+| **Skills de domínio** | 11 skills enterprise em `.agents/skills/` (product-management, code-review, data-engineering, ml-engineering, ai-engineering, frontend-engineering, security-audit, qa-testing, market-research, go-to-market, infra-devops) |
 
 ---
 
@@ -138,14 +146,23 @@ Flags úteis:
   settings.json              # permissões e operações bloqueadas
 scripts/
   new_repo.py                # lógica do wizard
+  generate_docs.js           # gerador PDF/DOCX/PPTX
+  hooks/
+    session_start.sh         # exibe kanban ao iniciar sessão
+    post_write.sh            # ruff/black em .py; gera docs em .md de docs/
   templates/
     CLAUDE.md                # gerado no filho com regras de project-manager e commands
     AGENTS.md                # gerado no filho com equipe e fluxos
     README.md                # gerado no filho com overview do projeto
+    agents/                  # 12 agentes copiados para .claude/agents/ do filho
     commands/
-      kickoff.md             # copiado para .claude/commands/ do filho
-      advance.md             # copiado para .claude/commands/ do filho
-      review-backlog.md      # copiado para .claude/commands/ do filho
+      kickoff.md             # /kickoff — discovery, pesquisa, relatório, backlog
+      advance.md             # /advance — avança no kanban
+      review-backlog.md      # /review-backlog — varredura proativa
+      update-memory.md       # /update-memory — atualiza memória persistente
+      (outros commands)
+.agents/
+  skills/                    # 11 skills enterprise + caveman x3
 .github/
   workflows/
     setup-kanban.yml         # cria Kanban e épicos no projeto filho

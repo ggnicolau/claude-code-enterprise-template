@@ -1,45 +1,76 @@
-# Project Overview
+# Claude Code Enterprise Template — Visão da Equipe
 
-Senior Python project workspace.
+Este repositório é a **fábrica de projetos enterprise**. Os agentes aqui são os do template pai — não os dos projetos filhos.
 
-## Stack
-- Python 3.11+
-- Tests: pytest
-- Formatting: ruff, black
-- Env management: uv or conda
+## Agentes do template pai (`.claude/agents/`)
 
-## Conventions
-- Type hints em todas as funcoes publicas
-- Docstrings apenas quando o "porque" nao e obvio
-- Prefira dataclasses ou Pydantic para modelos de dados
-- Notebooks em `notebooks/`, codigo reutilizavel em `src/`
-- Nunca commitar dados brutos ou modelos pesados - use `.gitignore`
+| Agente | Papel |
+|---|---|
+| `template-coordinator` | Ponto de entrada — orienta o uso do `/wizard`, coordena melhorias no template |
+| `tech-lead` | Revisão técnica de PRs no próprio template |
 
-## Architecture Notes
-- Scripts CLI usam `typer` ou `argparse`
-- Logs estruturados para rastrear execucoes
+## Agentes do projeto filho (`scripts/templates/agents/`)
 
-## What to Avoid
-- Nao usar `print()` para debug - use `logging`
-- Nao hardcodar paths - use `pathlib.Path`
-- Nao misturar logica de negocio com I/O
+Estes 12 agentes são copiados para o filho pelo `new_repo.py` durante a criação:
 
-## Template Usage
-- Este repositorio tambem funciona como template para criar novos repositorios no GitHub.
-- Neste folder, se o usuario disser `iniciar`, `start`, `novo repo` ou algo equivalente, prefira usar o wizard `python scripts/new_repo.py`.
-- Se o usuario pedir para criar um novo projeto a partir deste template, prefira criar um repositorio privado, salvo instrucao contraria.
-- Ao criar um novo repositorio a partir do template, configurar o secret `GH_PAT` no repositorio novo antes de depender da criacao do GitHub Project.
-- Depois de configurar `GH_PAT`, rodar a workflow `Setup Kanban`.
-- Comando padrao do wizard: `python scripts/new_repo.py`
-- Validar ao final:
-- existe um project com nome `<repo> Kanban`
-- o project aparece na aba `Projects` do repositorio
-- existem as views `Board`, `Table` e `Done`
-- a issue `Getting Started` existe
-- a issue `Getting Started` foi adicionada ao project com status `Todo`
+| Agente | Responsabilidade |
+|---|---|
+| `project-manager` | Ponto de entrada — delega, consolida, nunca executa |
+| `tech-lead` | Orquestrador técnico, code review, aprovação de PRs |
+| `product-owner` | Kanban, backlog completo (6 dimensões), priorização |
+| `data-engineer` | Pipelines, ETL, qualidade de dados |
+| `ml-engineer` | Modelos, features, experimentos |
+| `ai-engineer` | LLMs, agentes, RAG, evals |
+| `infra-devops` | Cloud, CI/CD, containers, observabilidade |
+| `qa` | Testes, cobertura, qualidade |
+| `researcher` | Pesquisa de mercado, benchmarks, inteligência competitiva |
+| `security-auditor` | Segurança, vulnerabilidades, OWASP |
+| `frontend-engineer` | Web, UI/UX, acessibilidade |
+| `marketing-strategist` | Go-to-market, posicionamento, campanhas |
 
-## Template Notes
-- No primeiro push do repositorio criado a partir do template, a workflow pode executar antes de `GH_PAT` estar configurado.
-- Nessa situacao, a workflow deve continuar sem falhar e apenas pular a criacao do GitHub Project.
-- Depois que `GH_PAT` existir, rodar `Setup Kanban` manualmente para criar o project e as views.
-- A API atual do GitHub permite criar a view `Board`, mas o agrupamento visual por `Status` pode ainda exigir ajuste manual na interface do GitHub.
+## Commands do template pai
+
+| Command | Propósito |
+|---|---|
+| `/wizard` | Criar novo projeto filho enterprise |
+| `/sync-to-projects` | Propagar mudanças do template para projetos filhos |
+| `/sync-to-template` | Trazer melhorias de um filho de volta ao template |
+
+## Hierarquia dos agentes no filho
+
+```
+Usuário
+  └── project-manager (interface, delegação, consolidação)
+        ├── product-owner (produto, kanban, backlog)
+        ├── tech-lead (técnica, código, PRs)
+        │     ├── data-engineer
+        │     ├── ml-engineer
+        │     ├── ai-engineer
+        │     ├── infra-devops
+        │     │     └── security-auditor
+        │     ├── qa
+        │     └── frontend-engineer
+        └── researcher
+              marketing-strategist (acionado por PM ou PO)
+```
+
+## Interações entre agentes (filho)
+
+| Agente | Responde a | Trabalha com |
+|---|---|---|
+| `project-manager` | Usuário | product-owner, tech-lead, researcher, marketing-strategist |
+| `product-owner` | project-manager | researcher, marketing-strategist, kanban |
+| `tech-lead` | project-manager | data-engineer, ml-engineer, ai-engineer, infra-devops, qa, security-auditor, frontend-engineer, researcher |
+| `researcher` | PM / PO / TL (quem acionar) | todos que precisam de inteligência de mercado ou técnica |
+| `marketing-strategist` | PM / PO (quem acionar) | researcher |
+| `data-engineer` | tech-lead | researcher, qa |
+| `ml-engineer` | tech-lead | data-engineer, researcher |
+| `ai-engineer` | tech-lead | researcher, ml-engineer |
+| `infra-devops` | tech-lead | security-auditor |
+| `frontend-engineer` | tech-lead | infra-devops, researcher |
+| `qa` | tech-lead | data-engineer, ml-engineer |
+| `security-auditor` | tech-lead / infra-devops | infra-devops |
+
+## Como criar um projeto filho
+
+Use o `/wizard` em uma conversa nova **neste repositório**.

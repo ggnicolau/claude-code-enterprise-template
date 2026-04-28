@@ -137,6 +137,38 @@ Regras:
 
 ---
 
+## Versionamento de Documentos
+
+Todo documento em `docs/` segue a convenção obrigatória de versionamento — nunca sobrescreva uma versão anterior.
+
+### Convenção de nome
+
+```
+docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md
+```
+
+Exemplos: `relatorio_2026-04-28_v1.md`, `apresentacao_2026-04-28_v2.md`, `arquitetura_2026-04-28_v1.md`
+
+### Fluxo de revisão
+
+Ao revisar um documento existente:
+1. `git mv docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md docs/<subdir>/archive/{nome}_YYYY-MM-DD_v{N}.md`
+2. Criar `docs/<subdir>/{nome}_YYYY-MM-DD_v{N+1}.md` com o conteúdo revisado
+3. `git commit -m "docs: revise {nome} v{N} → v{N+1} ({motivo})"`
+
+A pasta `archive/` é gerada automaticamente pelo `generate_docs.js` — não deletar arquivos de archive.
+
+### Geração de PDF/DOCX/PPTX
+
+O hook `post_write.sh` dispara automaticamente `scripts/generate_docs.js` ao salvar qualquer `.md` em `docs/`. O gerador produz os arquivos em `docs/<subdir>/generated/` espelhando a estrutura de origem (incluindo `archive/`).
+
+Para rodar manualmente:
+```bash
+node scripts/generate_docs.js docs/<subdir>/{nome}.md
+```
+
+---
+
 ## Equipe Multi-Agentes
 
 Este projeto inclui 11 agentes em `.claude/agents/`. O ponto de entrada padrão é o `project-manager`.
@@ -223,6 +255,30 @@ feature/* → dev → main
 - Mudanças em `.claude/`, `CLAUDE.md`, `AGENTS.md` também seguem essa regra — nunca push direto
 - `main` só recebe merge quando o usuário pedir explicitamente
 
+## Convenção de Commits
+
+Todos os commits seguem **Conventional Commits** com escopo obrigatório para diferenciar infraestrutura agentic de trabalho de produto:
+
+| Escopo | Quando usar | Exemplos |
+|---|---|---|
+| `(system)` | Mudanças no sistema agentic: `.claude/`, `CLAUDE.md`, agentes, hooks, memória, scripts | `docs(system): atualizar project_history`, `chore(system): adicionar hook post_write` |
+| sem escopo | Trabalho de produto: código, features, docs de produto, testes | `feat: implementar autenticação JWT`, `docs: add research report` |
+
+**Regra:** mudanças de infraestrutura agentic nunca se misturam com commits de produto no mesmo commit.
+
+## Memória Persistente
+
+O projeto mantém memória persistente em `.claude/memory/` — criada pela Fase 0 do `/kickoff` e atualizada via `/update-memory`.
+
+| Arquivo | Conteúdo | Quem lê |
+|---|---|---|
+| `MEMORY.md` | Índice com links para os outros arquivos | project-manager, tech-lead |
+| `user_profile.md` | Trajetória, rede e preferências do fundador | project-manager, tech-lead |
+| `project_genesis.md` | Motivação fundadora, ancoragens estratégicas, exclusões | project-manager, tech-lead |
+| `project_history.md` | Changelog humano — decisões, entregáveis, restrições | project-manager, tech-lead |
+
+**Regra:** somente o `project-manager` e o `tech-lead` leem a memória antes de agir. Os especialistas recebem contexto relevante via prompt de delegação — não lêem a memória diretamente.
+
 ## Autenticação GitHub
 
 Dois mecanismos disponíveis — use o adequado para cada operação:
@@ -293,13 +349,28 @@ Nunca rodar `git pull origin main` estando em outro branch — isso mistura hist
 | `/deploy` | Acionar infra-devops para deploy |
 | `/fix-issue` | Acionar especialista para corrigir um bug ou problema reportado |
 | `/clean` | Commitar e fazer push de tudo que está pendente localmente, de forma segura |
+| `/update-memory` | Atualizar memória do projeto — registrar decisões, restrições e entregáveis aprovados |
 
 ---
 
 ## Skills Disponíveis
 
-Skills base em `.agents/skills/` — uma por agente. Skills Caveman são opcionais:
+Skills em `.agents/skills/` — referenciadas formalmente nos agentes.
 
+**Skills de domínio enterprise:**
+- `product-management` — backlog, priorização, critérios de aceitação
+- `code-review` — revisão de PRs com severidade 🔴🟡🔵
+- `data-engineering` — pipelines, ETL, qualidade de dados
+- `ml-engineering` — experimentos, modelos, produção
+- `ai-engineering` — LLMs, RAG, agentes, evals
+- `frontend-engineering` — UI/UX, acessibilidade, responsividade
+- `security-audit` — OWASP, vulnerabilidades, secrets
+- `qa-testing` — pirâmide de testes, cobertura, boas práticas
+- `market-research` — mercado, competidores, benchmarks
+- `go-to-market` — GTM, posicionamento, funil
+- `infra-devops` — IaC, CI/CD, deploy, observabilidade
+
+**Skills Caveman (opcionais — instaladas pelo `/wizard`):**
 - `caveman` — comunicação ultra-comprimida (~75% menos tokens)
 - `caveman-commit` — mensagens de commit comprimidas
 - `caveman-review` — code review em uma linha por finding
