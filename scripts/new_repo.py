@@ -16,6 +16,16 @@ ROOT = Path(__file__).resolve().parents[1]
 MCP_CONFIG_PATH = ROOT / ".mcp.json"
 SETUP_KANBAN_WORKFLOW_NAME = "Setup Kanban"
 SETUP_KANBAN_WORKFLOW_FILE = "setup-kanban.yml"
+# IMPORTANTE: Nunca remova escopos deste set sem entender o impacto.
+# Cada escopo é obrigatório para uma parte do wizard:
+#   repo      — criar repositório, push, secrets
+#   read:org  — listar organizações e membros
+#   gist      — requerido pelo gh auth para tokens com permissões completas
+#   workflow  — criar/disparar GitHub Actions workflows
+#   project   — criar e gerenciar GitHub Projects (Kanban)
+# Se o token ativo não tiver um escopo, o wizard exibe instrução para
+# rodar `gh auth refresh --scopes "gist,project,read:org,repo,workflow"`
+# e NUNCA deve remover o escopo da lista para contornar a validação.
 REQUIRED_SCOPES = {"repo", "read:org", "gist", "workflow", "project"}
 
 
@@ -294,6 +304,8 @@ TEMPLATE_ONLY_FILES = [
     ".claude/commands/sync-to-projects.md",
     ".claude/commands/sync-to-template.md",
     "AGENTS.md",
+    # coordinator is Claude reading CLAUDE.md — children don't need this agent file
+    ".claude/agents/template-coordinator.md",
 ]
 
 TEMPLATE_ONLY_DIRS = [
@@ -332,7 +344,10 @@ def cleanup_template_files(destination: Path, repo_name: str) -> None:
     # Copia README.md para o filho
     readme_tpl = templates_dir / "README.md"
     if readme_tpl.exists():
-        (destination / "README.md").write_text(readme_tpl.read_text(encoding="utf-8"), encoding="utf-8")
+        (destination / "README.md").write_text(
+            readme_tpl.read_text(encoding="utf-8").replace("{repo_name}", repo_name),
+            encoding="utf-8",
+        )
 
     # Copia todos os commands de scripts/templates/commands/ para .claude/commands/ do filho
     commands_dir = templates_dir / "commands"
@@ -349,6 +364,33 @@ def cleanup_template_files(destination: Path, repo_name: str) -> None:
         dest_agents.mkdir(parents=True, exist_ok=True)
         for agent_file in agents_dir.glob("*.md"):
             (dest_agents / agent_file.name).write_text(agent_file.read_text(encoding="utf-8"), encoding="utf-8")
+
+    # Copia package.json do template para o filho (deps do gerador de docs)
+    pkg_tpl = templates_dir / "package.json"
+    if pkg_tpl.exists():
+        (destination / "package.json").write_text(
+            pkg_tpl.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+
+    # Copia styles/ do template para scripts/templates/styles no filho
+    styles_tpl = templates_dir / "styles"
+    if styles_tpl.exists():
+        dest_styles = destination / "scripts" / "templates" / "styles"
+        dest_styles.mkdir(parents=True, exist_ok=True)
+        for style_file in styles_tpl.iterdir():
+            if style_file.is_file():
+                (dest_styles / style_file.name).write_text(
+                    style_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+    # Copia o gerador de docs (scripts/generate_docs.js) para o filho
+    gen_src = ROOT / "scripts" / "generate_docs.js"
+    if gen_src.exists():
+        dest_scripts = destination / "scripts"
+        dest_scripts.mkdir(parents=True, exist_ok=True)
+        (dest_scripts / "generate_docs.js").write_text(
+            gen_src.read_text(encoding="utf-8"), encoding="utf-8"
+        )
 
     # Copia arquivos example do template para o filho
     for example_file in (".env.example", ".mcp.json.example", "CLAUDE.local.md.example"):
@@ -763,7 +805,9 @@ No Claude Code web/desktop, execute:
 /remote-env
 ```
 
-Selecione o ambiente cloud padrão para este projeto.
+Selecione o ambiente cloud padrão para este projeto (ex.: `default`, ou um ambiente configurado pela sua organização).
+
+**Nota:** `/remote-env` lista ambientes disponíveis — não cria novos. Ambientes são provisionados pela Anthropic ou pelo admin da sua organização.
 
 ## 4. Como funciona a sessão cloud
 
@@ -785,14 +829,257 @@ Cloud (análise pesada)    →  delegar ao data-engineer, ml-engineer ou ai-engi
 - `/clear` não disponível — use `/compact` para comprimir o contexto
 - Arquivos locais não são acessíveis na VM cloud
 - Não há sincronização automática entre local e cloud — use git como ponte
+- Se o ambiente cloud não tiver as dependências certas, verifique `requirements.txt` e `package.json`
 
-## 7. Acesso remoto ao computador local
+## 7. Acesso remoto ao computador local (`--remote-control`)
+
+Para acessar seu computador local remotamente via Claude Code mobile:
 
 ```bash
 claude --remote-control
 ```
 
-Expõe o Claude Code local como servidor remoto acessível pelo app mobile.
+Isso expõe o Claude Code local como servidor remoto acessível pelo app mobile.
+
+**Diferença:** `--remote-control` = acessa seu PC local. Sessão cloud = VM da Anthropic.
+
+---
+
+## TIER 3 — Configuração manual por conta (feita uma vez na UI cloud)
+
+Esses passos vivem na sua conta Anthropic, não no repositório. Configure em: **claude.ai -> Environments -> seu ambiente**.
+
+### D3 — Instalar GitHub App
+
+Obrigatório para acessar repositórios privados na cloud:
+
+> https://github.com/apps/claude
+
+Após instalar: Settings -> Configure -> All repositories
+
+### D4 — /web-setup (pré-requisito de tudo)
+
+Execute uma vez no terminal Claude Code local:
+
+```
+/web-setup
+```
+
+Sincroniza seu token GitHub com a conta Anthropic. Sem isso, `gh` não funciona em VMs remotas.
+
+### I6 — /remote-env (selecionar ambiente cloud padrão)
+
+```
+/remote-env
+```
+
+Lista e seleciona o ambiente cloud padrão para este projeto.
+
+### F1 — Agent Teams (múltiplos agentes em paralelo)
+
+Na UI cloud, adicione a variável de ambiente:
+
+```
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+```
+
+Permite rodar múltiplos agentes Claude em paralelo no mesmo projeto.
+Padrão: `0` (desabilitado). Habilite só se precisar de paralelismo real.
+
+### F2 — Compactação antecipada de contexto
+
+```
+CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70
+```
+
+Compacta o contexto quando atingir 70% (padrão: 95%). Recomendado para projetos longos — menos perda de contexto ao compactar mais cedo.
+
+### F3 — Janela de compactação automática
+
+```
+CLAUDE_CODE_AUTO_COMPACT_WINDOW=<valor>
+```
+
+Controla o tamanho da janela de contexto preservada após compactação. Opcional.
+
+### F4 — GH_TOKEN no ambiente cloud
+
+Na UI cloud, adicione:
+
+```
+GH_TOKEN=<seu_token>
+```
+
+Necessário para operações `gh` em sessões cloud sem GitHub App configurado.
+
+### F5 — CCR_FORCE_BUNDLE (repos privados sem GitHub App)
+
+```
+CCR_FORCE_BUNDLE=1
+```
+
+Alternativa ao GitHub App para repositórios privados. Use se não quiser instalar o GitHub App.
+
+### J — Setup script: instalar gh CLI
+
+Na UI cloud, campo "Setup script", adicione:
+
+```bash
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update && sudo apt install gh -y
+```
+
+Garante que `gh` está disponível em toda sessão cloud.
+
+### J2 — Níveis de acesso à rede
+
+Na UI cloud, campo "Network access":
+
+- **Trusted** (padrão): acesso completo à internet — necessário para `gh`, `pip`, `npm`
+- **Restricted**: sem acesso externo — use só para análises isoladas
+
+Mantenha **Trusted** para uso normal com este projeto.
+
+### J3 — Docker Compose
+
+Se gerou `docker-compose.yml` no wizard, adicione ao setup script da cloud:
+
+```bash
+docker compose pull
+```
+
+Pré-carrega as imagens no cache da VM, acelerando o primeiro `docker compose up`.
+
+### D1 — Rotinas agendadas
+
+Configure via UI cloud em "Schedules" ou use `/schedule` no terminal:
+
+```
+/schedule "Run /advance" --cron "0 9 * * 1-5"
+```
+
+Executa `/advance` automaticamente toda manhã de semana.
+
+### D2 — Rotina API-triggered
+
+Configure um webhook externo apontando para sua sessão cloud. Útil para disparar `/advance` a partir de eventos externos (ex: novo commit, nova issue criada).
+
+---
+
+## TIER 4 — Workflows por sessão
+
+Esses comandos são usados dentro de sessões cloud ativas.
+
+### I1 — Rodar /advance remotamente
+
+Do terminal local, dispare uma sessão cloud sem abrir o browser:
+
+```bash
+claude --remote "Run /advance"
+```
+
+### I2 — Múltiplos agentes em paralelo (requer F1)
+
+```bash
+claude --remote "Run /advance" &
+claude --remote "Run /review" &
+```
+
+Executa dois agentes simultâneos. Requer `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+
+### I3 — /autofix-pr
+
+Após instalar o GitHub App, o Claude Code pode corrigir PRs automaticamente quando solicitado:
+
+```
+/autofix-pr
+```
+
+Revisa o PR aberto, identifica problemas e aplica correções.
+
+### I4 — --teleport / /teleport
+
+Transfere o contexto atual de uma sessão local para uma sessão cloud:
+
+```bash
+claude --teleport
+```
+
+Ou dentro de uma sessão:
+
+```
+/teleport
+```
+
+Útil para continuar trabalho pesado na cloud sem perder contexto.
+
+### I7 — /tasks (monitorar sessões cloud)
+
+```
+/tasks
+```
+
+Lista e monitora sessões cloud em andamento a partir do terminal local.
+
+### I8 — check-tools (debug cloud)
+
+Dentro de uma sessão cloud, verifique quais ferramentas estão disponíveis:
+
+```
+check-tools
+```
+
+Útil para diagnosticar quando um agente não consegue executar determinada operação.
+
+### I9 — Plan mode + execução cloud autônoma
+
+Planeje localmente, execute na cloud sem supervisão:
+
+```bash
+claude --remote "Enter plan mode, plan /advance, then execute autonomously"
+```
+
+### I10 — Diff review com comentários inline
+
+Na UI web (claude.ai/code), abra um PR e use o painel de diff para comentar linha a linha antes de aprovar.
+
+### I11 — Compartilhamento de sessão
+
+Na UI web, ative o toggle de visibilidade da sessão para compartilhar o link com colaboradores. Eles podem acompanhar em tempo real sem editar.
+
+### I12 — ultraplan
+
+Modo de planejamento estendido no browser. O Claude elabora um plano detalhado que você revisa e aprova antes da execução:
+
+```
+/ultraplan
+```
+
+### I13 — ultrareview
+
+Code review multi-agente em sandbox cloud. Analisa o PR com múltiplas perspectivas antes de submeter:
+
+```
+/ultrareview
+```
+
+### I14 — --remote-control (acesso à máquina local pelo celular)
+
+Na sua máquina local, execute:
+
+```bash
+claude --remote-control
+```
+
+Isso expõe o Claude Code local como servidor remoto. Acesse pelo app Claude mobile para continuar trabalhando de qualquer lugar com controle total do seu ambiente local.
+
+### D5 — Sessões em segundo plano + app mobile
+
+1. Inicie uma sessão cloud no browser
+2. Feche o browser — a sessão continua rodando em background
+3. Abra o app Claude mobile -> "Sessions" -> sua sessão ativa
+4. Monitore o progresso, aprove decisões ou cancele de qualquer lugar
 """
     setup_dir = destination / "docs" / "setup"
     setup_dir.mkdir(parents=True, exist_ok=True)
@@ -806,22 +1093,22 @@ def generate_cloud_setup_script(destination: Path) -> None:
 # Cloud setup script — instala gh CLI e autentica na VM cloud
 set -e
 
-echo "Instalando gh CLI..."
+echo "🔧 Instalando gh CLI..."
 type -p curl >/dev/null || (apt update && apt install -y curl)
 curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
 chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
 apt update && apt install -y gh
 
-echo "Autenticando gh CLI..."
+echo "🔑 Autenticando gh CLI..."
 if [ -n "$GH_TOKEN" ]; then
   echo "$GH_TOKEN" | gh auth login --with-token
-  echo "gh CLI autenticado via GH_TOKEN."
+  echo "✅ gh CLI autenticado via GH_TOKEN."
 else
-  echo "GH_TOKEN nao encontrado. Execute: export GH_TOKEN=<seu-token>"
+  echo "⚠️  GH_TOKEN não encontrado. Execute: export GH_TOKEN=<seu-token>"
 fi
 
-echo "Setup cloud concluido."
+echo "✅ Setup cloud concluído."
 """
     scripts_dir = destination / "scripts"
     scripts_dir.mkdir(parents=True, exist_ok=True)
@@ -1248,24 +1535,107 @@ def main(argv: Iterable[str] | None = None) -> int:
             install_deps_in_child(local_clone_path)
 
             if advanced:
-                generate_cloud_guide(local_clone_path, repo_name)
-                print("- docs/setup/cloud_guide.md gerado.")
-            if args.cloud_setup:
-                generate_cloud_setup_script(local_clone_path)
-                print("- scripts/cloud_setup.sh gerado.")
-            if args.autocompact or args.agent_teams:
-                update_settings_env(local_clone_path, args.autocompact, args.agent_teams)
-                print("- settings.json atualizado com variaveis de ambiente.")
-            if args.docker:
-                generate_docker_compose(local_clone_path)
-                print("- docker-compose.yml gerado.")
+                generated = []
 
-            if advanced:
-                print()
-                print("Orientacoes para uso em cloud:")
-                print("  1. Execute /web-setup no Claude Code para conectar sua conta GitHub.")
-                print("  2. Instale o GitHub App em: https://github.com/apps/claude")
-                print("  3. Execute /remote-env para selecionar o ambiente cloud padrao.")
+                # B6: gerar cloud_guide.md
+                generate_cloud_guide(local_clone_path, repo_name)
+                generated.append("docs/setup/cloud_guide.md")
+                print("- cloud_guide.md gerado em docs/setup/.")
+
+                # cloud_setup.sh
+                if args.cloud_setup:
+                    generate_cloud_setup_script(local_clone_path)
+                    generated.append("scripts/cloud_setup.sh")
+                    print("- cloud_setup.sh gerado em scripts/.")
+
+                # settings.json: editar valores se pediu
+                if args.autocompact or args.agent_teams:
+                    update_settings_env(
+                        local_clone_path, args.autocompact, args.agent_teams
+                    )
+                    generated.append(".claude/settings.json")
+                    vars_set = []
+                    if args.autocompact:
+                        vars_set.append("AUTOCOMPACT_PCT_OVERRIDE=70")
+                    if args.agent_teams:
+                        vars_set.append("AGENT_TEAMS=1")
+                    print(f"- settings.json atualizado: {', '.join(vars_set)}")
+
+                # docker-compose.yml
+                if args.docker:
+                    generate_docker_compose(local_clone_path)
+                    generated.append("docker-compose.yml")
+                    print("- docker-compose.yml gerado.")
+
+                # commit tudo junto
+                for f in generated:
+                    subprocess.run(
+                        ["git", "add", f],
+                        cwd=local_clone_path,
+                        check=False,
+                        capture_output=True,
+                    )
+                subprocess.run(
+                    [
+                        "git",
+                        "commit",
+                        "-m",
+                        "chore: add cloud setup files (advanced mode)",
+                    ],
+                    cwd=local_clone_path,
+                    check=False,
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "push"],
+                    cwd=local_clone_path,
+                    check=False,
+                    capture_output=True,
+                )
+
+                # Orientacoes cloud
+                print("\n" + "=" * 60)
+                print("PROXIMOS PASSOS — CONFIGURACAO CLOUD")
+                print("=" * 60)
+                print(
+                    "\n[Passo 1] Instale o GitHub App (acesso a repos privados na cloud):"
+                )
+                print("  https://github.com/apps/claude")
+                print("  Apos instalar: Settings -> Configure -> All repositories")
+                print(
+                    "\n[Passo 2] Instale o Claude Code CLI (desbloqueia sessoes cloud, /web-setup, --remote):"
+                )
+                print("  PowerShell: irm https://claude.ai/install.ps1 | iex")
+                print("  WinGet:     winget install Anthropic.ClaudeCode")
+                print("  Requer:     Git for Windows instalado")
+                print(
+                    "  Apos instalar: adicione ao PATH: C:\\Users\\<usuario>\\.local\\bin"
+                )
+                print(
+                    "  (Painel de Controle -> Sistema -> Variaveis de Ambiente -> PATH)"
+                )
+                print(
+                    "\n[Passo 2b] Autentique o gh CLI (em PowerShell externo, fora do Claude Code):"
+                )
+                print("  gh auth login")
+                print("  (O Claude Code bloqueia gh auth login — use terminal externo)")
+                print(
+                    "\n[Passo 3] Com CLI e gh autenticados — execute no terminal Claude Code:"
+                )
+                print("  /web-setup   -> sincroniza token GitHub com a conta Anthropic")
+                print("  /remote-env  -> seleciona ambiente cloud padrao")
+                print("\nDetalhes completos: docs/setup/cloud_guide.md")
+                print("=" * 60)
+            else:
+                if args.cloud_setup:
+                    generate_cloud_setup_script(local_clone_path)
+                    print("- scripts/cloud_setup.sh gerado.")
+                if args.autocompact or args.agent_teams:
+                    update_settings_env(local_clone_path, args.autocompact, args.agent_teams)
+                    print("- settings.json atualizado com variaveis de ambiente.")
+                if args.docker:
+                    generate_docker_compose(local_clone_path)
+                    print("- docker-compose.yml gerado.")
 
         if run_workflow_now:
             workflow_output = maybe_run_workflow(env, full_name, "Setup Kanban")

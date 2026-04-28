@@ -26,7 +26,19 @@ Sua **primeira ação obrigatória** em toda conversa é exibir ao usuário a me
 
 ### Mensagem de orientação (exibir ao usuário no início de toda conversa)
 
-Leia o Kanban com `gh project item-list` e preencha o estado atual, então exiba:
+O Kanban já está disponível no contexto da sessão — foi exibido pelo hook de inicialização no `system-reminder` de `SessionStart`. Use esse output diretamente para construir o estado atual. Não rode `gh` nem nenhum outro comando.
+
+Para construir o 📋 Estado atual, use o output do hook na seguinte ordem de raciocínio:
+
+1. **Últimas entregas** — a seção `[RECENTES]` lista as issues fechadas mais recentes com data. Agrupe-as tematicamente e destaque o que foi concluído por último.
+2. **Onde estamos** — com base no que foi entregue, infira o estágio atual do projeto.
+3. **O que vem agora** — identifique 2-3 prioridades concretas com número de issue e contexto. Prefira items em 'In Progress' ou 'Review'; se vazios, use os primeiros em 'Todo'.
+
+Se identificar cards em `[DONE]` com issue ainda aberta, ou issues com WARNING 'issue fechada mas card nao esta em Done', o board está desatualizado — sugira `/review-backlog` ao final da mensagem.
+
+Items com prefixo `[START]` são scaffolding criado automaticamente pelo template — não representam histórico do projeto. Se as issues/cards são apenas `[START]` e 'Getting Started', o projeto ainda não foi iniciado — sugira `/kickoff`.
+
+Exiba a mensagem neste formato:
 
 ```
 🗂️ {repo_name} — Project Manager
@@ -40,6 +52,8 @@ Leia o Kanban com `gh project item-list` e preencha o estado atual, então exiba
   /review           → code review de um PR
   /deploy           → deploy
   /fix-issue        → corrigir um bug
+  /update-memory    → atualizar a memória do projeto
+  /clean            → commitar e fazer push de tudo pendente
 
 👥 Equipe: project-manager · tech-lead · product-owner · researcher
          data-engineer · ml-engineer · ai-engineer · infra-devops
@@ -335,6 +349,28 @@ git checkout main && git pull origin main && git checkout dev && git merge main 
 Nunca rodar `git pull origin main` estando em outro branch — isso mistura históricos. Sempre fazer checkout do branch antes de puxar. O `git merge main` final é obrigatório para trazer o commit de merge para o dev e evitar o banner de divergência no Claude Code.
 
 **Esta etapa é obrigatória em todos os commands que geram branch e merge** — `/fix-issue`, `/advance`, `/deploy`, qualquer outro. Não é opcional. Sem este passo, o Claude Code exibe o banner de branch stale e o workspace fica sujo.
+
+---
+
+## Sessões Cloud — Rastreabilidade
+
+Ao abrir PR ou commitar entregável em sessão cloud, incluir no corpo do PR o link da sessão:
+
+```bash
+[ -n "$CLAUDE_CODE_REMOTE_SESSION_ID" ] && echo "Sessão: https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID}"
+```
+
+Se `CLAUDE_CODE_REMOTE_SESSION_ID` não existir (sessão local), omitir — sem erro, sem placeholder.
+
+---
+
+## Contexto em Sessões Cloud
+
+Em sessões cloud, os comandos de contexto se comportam diferente:
+
+- `/compact` → disponível — resume a conversa e libera contexto; aceita instruções de foco (ex: `/compact manter output dos testes`)
+- `/clear` (comando interno do Claude) → **não disponível** em cloud — usar `/compact` no lugar
+- `/clean` (command do projeto) → funciona normalmente em qualquer ambiente
 
 ---
 
