@@ -21,7 +21,7 @@ Parse o argumento. Resolve o caminho como `../<nome>`. Verifique se o diretório
 Compare o filho com o template:
 
 **Arquivos comparados (filho é a fonte de avaliação):**
-- `.claude/agents/*.md` → contra `.claude/agents/` do template
+- `.claude/agents/*.md` → contra `scripts/templates/agents/` do template
 - `.claude/commands/*.md` — exceto `wizard.md`, `sync-to-projects.md`, `sync-to-template.md` e `sync-master.md` → contra `.claude/commands/` do template
 - `.claude/commands/*.md` que correspondam a `scripts/templates/commands/` → contra `scripts/templates/commands/` do template
 - `.agents/skills/**` — exceto pastas `caveman*` → contra `.agents/skills/` do template
@@ -32,7 +32,32 @@ Compare o filho com o template:
 - `CLAUDE.md` do filho → contra `scripts/templates/CLAUDE.md` (substituindo o nome do projeto por `{repo_name}` antes de comparar)
 - `AGENTS.md` do filho → contra `scripts/templates/AGENTS.md` (substituindo o nome do projeto por `{repo_name}` antes de comparar)
 
-**Para cada arquivo, classifique:**
+**Como comparar — use diff, não leia os arquivos inteiros:**
+
+Para cada arquivo da lista acima, compare via shell:
+
+```bash
+diff ../<projeto>/<caminho-filho> <caminho-template> 2>/dev/null
+```
+
+- Arquivo não existe no template → `SÓ NO FILHO`
+- Arquivo não existe no filho → `SÓ NO TEMPLATE` (ignorar)
+- diff vazio → `OK` (pula — não carregue o conteúdo)
+- diff com diferença → leia os dois e classifique: `FILHO MAIS NOVO` ou `TEMPLATE MAIS NOVO`
+
+Para `CLAUDE.md` e `AGENTS.md`, compare após substituição do nome do projeto:
+
+```bash
+sed 's/<nome-projeto>/{repo_name}/g' ../<projeto>/CLAUDE.md | diff - scripts/templates/CLAUDE.md
+```
+
+Para skills (diretórios), use `diff -r`:
+
+```bash
+diff -r ../<projeto>/.agents/skills/<nome>/ .agents/skills/<nome>/ 2>/dev/null
+```
+
+**Classifique cada arquivo:**
 - `FILHO MAIS NOVO` — conteúdo difere e o filho parece mais completo/atualizado
 - `TEMPLATE MAIS NOVO` — conteúdo difere e o template parece mais completo/atualizado
 - `OK` — idêntico (ignorar na listagem)
@@ -77,13 +102,31 @@ Crie um branch no template e copie os arquivos confirmados:
 git checkout -b sync/to-template-YYYY-MM-DD
 ```
 
-Copie os arquivos:
-- Agentes: copie para `.claude/agents/` do template
-- Commands de `.claude/commands/` do filho: copie para `.claude/commands/` do template
-- Commands que correspondam a `scripts/templates/commands/`: copie para `scripts/templates/commands/` do template
-- Skills: copie para `.agents/skills/` do template — pule pastas `caveman*`
-- `CLAUDE.md` do filho: substitua o nome do projeto por `{repo_name}` e salve em `scripts/templates/CLAUDE.md`
-- `AGENTS.md` do filho: substitua o nome do projeto por `{repo_name}` e salve em `scripts/templates/AGENTS.md`
+Copie os arquivos via shell — não reescreva o conteúdo:
+
+```bash
+# Agentes
+cp ../<projeto>/.claude/agents/<nome>.md scripts/templates/agents/<nome>.md
+
+# Commands de .claude/commands/
+cp ../<projeto>/.claude/commands/<nome>.md .claude/commands/<nome>.md
+
+# Commands de scripts/templates/commands/
+cp ../<projeto>/.claude/commands/<nome>.md scripts/templates/commands/<nome>.md
+
+# Skills (exceto caveman*)
+cp -r ../<projeto>/.agents/skills/<nome>/ .agents/skills/<nome>/
+
+# Hooks e .gitattributes
+cp ../<projeto>/scripts/hooks/session_start.sh scripts/hooks/session_start.sh
+cp ../<projeto>/scripts/hooks/post_write.sh scripts/hooks/post_write.sh
+cp ../<projeto>/.gitattributes .gitattributes
+cp ../<projeto>/scripts/templates/.gitattributes scripts/templates/.gitattributes
+
+# CLAUDE.md e AGENTS.md — substituir nome do projeto por {repo_name}
+sed 's/<nome-projeto>/{repo_name}/g' ../<projeto>/CLAUDE.md > scripts/templates/CLAUDE.md
+sed 's/<nome-projeto>/{repo_name}/g' ../<projeto>/AGENTS.md > scripts/templates/AGENTS.md
+```
 
 Após copiar, commit, abra PR para `dev` e faça o merge:
 

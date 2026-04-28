@@ -21,7 +21,7 @@ Parse os argumentos separados por vírgula. Para cada projeto, resolve o caminho
 Para cada projeto, compare com o template:
 
 **Arquivos do template (fonte de verdade):**
-- `.claude/agents/*.md`
+- `scripts/templates/agents/*.md` → comparados contra `.claude/agents/` do filho
 - `.claude/commands/*.md` — exceto `wizard.md`, `sync-to-projects.md`, `sync-to-template.md` e `sync-master.md`
 - `scripts/templates/commands/*.md` → todos comparados contra `.claude/commands/` do filho (esses commands chegam no filho via wizard, não via `.claude/commands/` do template — qualquer novo arquivo adicionado a esta pasta é automaticamente incluído)
 - `.agents/skills/**` — exceto qualquer pasta com nome iniciando em `caveman`
@@ -32,7 +32,31 @@ Para cada projeto, compare com o template:
 - `scripts/templates/CLAUDE.md` → comparado contra `CLAUDE.md` do filho (substituindo `{repo_name}` pelo nome do projeto antes de comparar)
 - `scripts/templates/AGENTS.md` → comparado contra `AGENTS.md` do filho (substituindo `{repo_name}` pelo nome do projeto antes de comparar)
 
-**Para cada arquivo, classifique:**
+**Como comparar — use diff, não leia os arquivos inteiros:**
+
+Para cada arquivo da lista acima, compare via shell:
+
+```bash
+diff <caminho-template> <caminho-filho> 2>/dev/null
+```
+
+- Arquivo não existe no filho → `NOVO`
+- diff vazio → `OK` (pula — não carregue o conteúdo)
+- diff com diferença → `DESATUALIZADO` (exiba o diff ao usuário)
+
+Para `CLAUDE.md` e `AGENTS.md`, compare após substituição de `{repo_name}`:
+
+```bash
+sed 's/{repo_name}/<nome-projeto>/g' scripts/templates/CLAUDE.md | diff - ../<projeto>/CLAUDE.md
+```
+
+Para skills (diretórios), use `diff -r`:
+
+```bash
+diff -r .agents/skills/<nome>/ ../<projeto>/.agents/skills/<nome>/ 2>/dev/null
+```
+
+**Classifique cada arquivo:**
 - `NOVO` — existe no template mas não no filho
 - `DESATUALIZADO` — existe nos dois mas conteúdo difere
 - `OK` — idêntico (ignorar na listagem)
@@ -71,13 +95,31 @@ Para cada arquivo NOVO ou DESATUALIZADO, **não commite direto** — crie um bra
 git checkout -b sync/to-projects-YYYY-MM-DD
 ```
 
-Copie os arquivos:
-- Agentes: copie `.claude/agents/<nome>.md` diretamente
-- Commands de `.claude/commands/`: copie diretamente
-- Commands de `scripts/templates/commands/`: copie todos os `.md` para `.claude/commands/` do filho
-- Skills: copie `.agents/skills/<nome>/` diretamente — pule pastas `caveman*`
-- `CLAUDE.md`: gere a partir de `scripts/templates/CLAUDE.md` substituindo `{repo_name}` pelo nome do projeto
-- `AGENTS.md`: gere a partir de `scripts/templates/AGENTS.md` substituindo `{repo_name}` pelo nome do projeto
+Copie os arquivos via shell — não reescreva o conteúdo:
+
+```bash
+# Agentes
+cp scripts/templates/agents/<nome>.md ../<projeto>/.claude/agents/<nome>.md
+
+# Commands de .claude/commands/ do template
+cp .claude/commands/<nome>.md ../<projeto>/.claude/commands/<nome>.md
+
+# Commands de scripts/templates/commands/
+cp scripts/templates/commands/<nome>.md ../<projeto>/.claude/commands/<nome>.md
+
+# Skills (exceto caveman*)
+cp -r .agents/skills/<nome>/ ../<projeto>/.agents/skills/<nome>/
+
+# Hooks e .gitattributes
+cp scripts/hooks/session_start.sh ../<projeto>/scripts/hooks/session_start.sh
+cp scripts/hooks/post_write.sh ../<projeto>/scripts/hooks/post_write.sh
+cp .gitattributes ../<projeto>/.gitattributes
+cp scripts/templates/.gitattributes ../<projeto>/scripts/templates/.gitattributes
+
+# CLAUDE.md e AGENTS.md — substituir {repo_name} pelo nome do projeto
+sed 's/{repo_name}/<nome-projeto>/g' scripts/templates/CLAUDE.md > ../<projeto>/CLAUDE.md
+sed 's/{repo_name}/<nome-projeto>/g' scripts/templates/AGENTS.md > ../<projeto>/AGENTS.md
+```
 
 Nunca toque em arquivos classificados como `EXTRA`.
 
