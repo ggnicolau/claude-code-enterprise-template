@@ -59,7 +59,22 @@ Para cada template irmão, compare arquivo por arquivo da lista universal acima.
 
 **Para `mkdocs.yml`:** compare apenas as seções `theme` (exceto `palette`), `plugins` e `markdown_extensions`, e as chaves de primeiro nível do `nav` (não os valores nem subseções).
 
-**Para cada arquivo, classifique:**
+**Como comparar — use diff, não leia os arquivos inteiros:**
+
+Para cada arquivo da lista universal, compare via shell:
+
+```bash
+diff <arquivo-atual> <arquivo-irmão> 2>/dev/null
+```
+
+- Arquivo não existe no irmão → `AUSENTE`
+- diff vazio → `OK` (pula — não carregue o conteúdo)
+- diff com diferença → `DESATUALIZADO` (exiba o diff ao usuário)
+
+Para `template-coordinator.md`: compare ignorando a linha do nome do template (já previsto no processo).
+Para `mkdocs.yml`: compare seção por seção conforme regras existentes.
+
+**Classifique cada arquivo:**
 - `DESATUALIZADO` — existe nos dois mas conteúdo difere
 - `OK` — idêntico (ignorar)
 - `AUSENTE` — existe no atual mas não no irmão
