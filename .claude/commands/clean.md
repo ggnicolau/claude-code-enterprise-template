@@ -67,7 +67,38 @@ Se falhar por remote à frente, rodar `git pull --rebase` antes de tentar novame
 
 ---
 
-## Passo 6 — Confirmar
+## Passo 6 — Limpar branches claude/
+
+Verifique se existem branches de worktree abandonados:
+
+```bash
+git branch | grep 'claude/'
+```
+
+Se existirem, liste-os ao usuário:
+
+```
+🧹 Branches claude/ encontrados (worktrees de sessões anteriores):
+  claude/distracted-bhaskara-a177f0
+  claude/nifty-ramanujan-7bc8ee
+```
+
+Pergunte: **"Deseja remover esses branches? (o trabalho neles será descartado)"**
+
+Se confirmar, para cada branch:
+
+```bash
+git worktree remove .claude/worktrees/<nome> --force 2>/dev/null || true
+git branch -D claude/<nome>
+```
+
+Ao final: `git worktree prune`
+
+Se não existirem branches `claude/`, pule este passo silenciosamente.
+
+---
+
+## Passo 7 — Confirmar
 
 ```
 ✅ Pronto. Working tree limpa.
