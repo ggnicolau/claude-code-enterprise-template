@@ -71,7 +71,7 @@ Após confirmar, o wizard:
 2. Cria o repositório no GitHub via API
 3. Remove arquivos internos do template que não fazem sentido no projeto filho
 4. Gera `CLAUDE.md` e `AGENTS.md` parametrizados com o nome do projeto
-5. Copia os 12 agentes e os commands para o filho
+5. Copia os 13 agentes e os commands para o filho
 6. Cria branch `dev`
 7. Configura o secret `GH_TOKEN` no repositório filho
 8. Dispara o workflow `setup-kanban.yml` — cria o GitHub Project com labels e views
@@ -130,7 +130,7 @@ O `project-manager` fecha issues prontas, seleciona as próximas e delega ao tec
 ```
 {seu-projeto}/
 ├── .claude/
-│   ├── agents/          # 12 agentes especializados
+│   ├── agents/          # 13 agentes especializados
 │   ├── commands/        # /kickoff, /advance, /review, /deploy, ...
 │   └── memory/          # memória persistente (criada no kickoff)
 ├── .agents/
