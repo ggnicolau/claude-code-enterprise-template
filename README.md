@@ -6,6 +6,12 @@ Template base para criar novos projetos Python com Claude Code configurado, equi
 
 ---
 
+## Dual Multi-Agent System
+
+Este template implementa um **dual multi-agent system**: o mesmo time de agentes opera em dois planos simultâneos. No **plano de construção**, os agentes desenvolvem o produto — abrem issues, escrevem código, fazem review, evoluem o backlog. No **plano de execução**, os agentes *são* o produto — rodam rotinas, geram artefatos, publicam outputs, automatizam processos criativos, intelectuais ou de software. O Kanban e o CLAUDE.md são a lei que governa os dois planos.
+
+---
+
 ## O que o filho recebe ao ser criado
 
 | EntregÃ¡vel | Detalhe |
