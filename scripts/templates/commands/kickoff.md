@@ -104,6 +104,83 @@ git commit -m "docs(system): add project genesis, user profile and history from 
 git push
 ```
 
+### Fase 0d — IDs do Kanban
+
+Com o Kanban já criado pelo wizard, descubra os IDs do projeto via GraphQL e injete no `product-owner.md`:
+
+```bash
+export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
+
+# Descobrir project-id, field-id e option-ids de uma vez
+gh api graphql -f query='
+query {
+  repository(owner: "{owner}", name: "{repo_name}") {
+    projectsV2(first: 1) {
+      nodes {
+        id
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              options { id name }
+            }
+          }
+        }
+      }
+    }
+  }
+}'
+```
+
+Com o output, extraia e salve em `.claude/memory/kanban_ids.md`:
+
+```markdown
+---
+name: Kanban IDs
+description: IDs do GitHub Project Kanban — project-id, field-id e option-ids dos status
+type: project
+---
+
+## IDs
+
+- **project-id**: <valor>
+- **field-id (Status)**: <valor>
+
+## Option IDs
+
+| Status | Option ID |
+|---|---|
+| Backlog | <valor> |
+| Todo | <valor> |
+| In Progress | <valor> |
+| Review | <valor> |
+| Done | <valor> |
+```
+
+Em seguida, injete os valores no `product-owner.md` substituindo os placeholders:
+
+```bash
+sed -i \
+  -e 's|{owner}|<owner>|g' \
+  -e 's|{repo_name}|<repo_name>|g' \
+  -e 's|{kanban_project_id}|<project-id>|g' \
+  -e 's|{kanban_field_id}|<field-id>|g' \
+  -e 's|{option_id_backlog}|<option-id-backlog>|g' \
+  -e 's|{option_id_todo}|<option-id-todo>|g' \
+  -e 's|{option_id_in_progress}|<option-id-in-progress>|g' \
+  -e 's|{option_id_review}|<option-id-review>|g' \
+  -e 's|{option_id_done}|<option-id-done>|g' \
+  .claude/agents/product-owner.md
+```
+
+Commit:
+```bash
+git add .claude/memory/kanban_ids.md .claude/agents/product-owner.md
+git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0d"
+git push
+```
+
 **Somente após este commit**, avance para Fase 1.
 
 ---
