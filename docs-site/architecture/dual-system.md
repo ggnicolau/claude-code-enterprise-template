@@ -34,19 +34,31 @@ MCP servers                        →  conexão com ferramentas e sistemas exte
 rotinas / cron                     →  execução agendada sem intervenção humana
 ```
 
-O **OpenClaw** — que surgiu em novembro de 2025 e se tornou o repositório open-source de crescimento mais rápido da história do GitHub — usa `SOUL.md` para identidade, `AGENTS.md` para regras procedurais, `MEMORY.md` para persistência, e `skills/` para workflows. O **Codex** da OpenAI usa `AGENTS.md` hierárquico por diretório, `SKILL.md` para workflows, e hooks configuráveis via `config.toml`. O **Claude Code** usa `CLAUDE.md`, `.claude/agents/*.md`, `.claude/memory/`, `commands/*.md` como skills, e hooks em `settings.json`.
+O **OpenClaw** — que surgiu em novembro de 2025 e se tornou o repositório open-source de crescimento mais rápido da história do GitHub — usa `SOUL.md` como arquivo de identidade central (lido primeiro, define personalidade e valores), `AGENTS.md` para regras procedurais complementares, `MEMORY.md` para persistência, e `skills/SKILL.md` para workflows. O **Codex** da OpenAI usa `AGENTS.md` em camadas hierárquicas por diretório — com semântica mais próxima de instrução técnica do que de identidade —, `SKILL.md` para workflows reutilizáveis, hooks via `config.toml`, e Automations para tarefas agendadas. O **Claude Code** usa `CLAUDE.md` como lei proprietária (com recursos como `@imports`) combinado com `AGENTS.md` como padrão cross-tool, `.claude/agents/*.md` para agentes especializados, `commands/*.md` e `SKILL.md` para workflows, e hooks em `settings.json`.
 
-Os nomes dos arquivos diferem. A arquitetura é a mesma.
+O que é notável não é que os nomes coincidam — é que as funções coincidem. Cada ferramenta chegou independentemente à mesma separação: identidade global, agentes especializados, memória persistente, workflows nomeados, automação reativa e agendada.
 
 | Conceito | Claude Code | OpenClaw | Codex (OpenAI) |
 |---|---|---|---|
-| Identidade do agente | `CLAUDE.md` | `SOUL.md` + `AGENTS.md` | `AGENTS.md` |
-| Agentes especializados | `.claude/agents/*.md` | `agents/<nome>.md` | subagents |
-| Memória persistente | `MEMORY.md` + arquivos | `MEMORY.md` + SQLite | não nativo |
+| Identidade do agente | `CLAUDE.md` + `AGENTS.md` | `SOUL.md` + `AGENTS.md` | `AGENTS.md` (instrução por diretório) |
+| Agentes especializados | `.claude/agents/*.md` | `agents/<nome>.md` | sem arquivo por agente |
+| Memória persistente | `MEMORY.md` + arquivos | `MEMORY.md` + SQLite | sistema `memories/` local |
 | Hooks | `settings.json` | `gateway:startup`, `agent:bootstrap` | `config.toml` |
-| Skills / workflows | `commands/*.md` | `skills/SKILL.md` | `SKILL.md` + scripts |
-| Multi-agente | `Task` tool | multi-agent routing | subagents SDK |
-| Rotinas agendadas | GitHub Actions + CronCreate | cron nativo | triggers externos |
+| Skills / workflows | `commands/*.md` + `SKILL.md` | `skills/SKILL.md` | `SKILL.md` |
+| Multi-agente | `Task` tool | coordinator pattern formalizado | subagents SDK |
+| Rotinas agendadas | CronCreate + GitHub Actions | cron nativo no Gateway | Automations nativo |
+
+A tabela acima merece leitura cuidadosa, porque os nomes iguais escondem diferenças importantes — e as diferenças importantes às vezes escondem equivalências funcionais.
+
+**`AGENTS.md` não é a mesma coisa nas três ferramentas.** No Claude Code e no OpenClaw, `AGENTS.md` segue o padrão cross-tool formalizado em 2025 pela Agentic AI Foundation (sob a Linux Foundation) — mais de 60.000 repositórios o adotaram como "um README para agentes", definindo identidade, valores e regras comportamentais. No Claude Code, ele coexiste com o `CLAUDE.md`, que é o arquivo proprietário da Anthropic com maior expressividade: suporta `@imports` para composição de contexto, é lido antes de qualquer sessão e funciona como a lei inviolável do sistema. No Codex, `AGENTS.md` tem semântica diferente — funciona como instrução técnica em camadas, empilhada hierarquicamente do diretório raiz até o diretório de trabalho atual. Não é definição de personalidade; é contexto acumulado por localização.
+
+**O `SOUL.md` do OpenClaw não tem equivalente direto nas outras ferramentas.** É o arquivo lido primeiro em qualquer inicialização — antes de qualquer instrução de tarefa — e define personalidade, valores e limites comportamentais do agente. O `AGENTS.md` do OpenClaw é complementar, não central. Nem o Claude Code nem o Codex têm um arquivo com essa função identitária explícita: no Claude, a identidade emerge do `CLAUDE.md` como lei de comportamento; no Codex, não há mecanismo formal equivalente.
+
+**Agentes especializados existem como arquivos `.md` no Claude e no OpenClaw — no Codex, não.** O Claude usa `.claude/agents/*.md`, o OpenClaw usa `agents/<nome>.md`: um arquivo por agente, com papel, responsabilidades e regras de interação definidas em markdown. No Codex, subagents são instâncias do SDK instanciadas em código, não convenções de arquivo. A formalização existe — o Subagents SDK tem documentação oficial —, mas não há a convenção de "um arquivo por agente especializado".
+
+**Skills e workflows convergem em convenção, não em nome.** Claude Code usa `commands/*.md` para slash commands e `SKILL.md` para workflows reutilizáveis com frontmatter YAML. OpenClaw usa `skills/SKILL.md` — mesma estrutura, sem `commands/`. Codex usa `SKILL.md` com campos `name` e `description`, invocável via `/skills` ou `$`. O mecanismo é o mesmo; os nomes de diretório diferem.
+
+**Rotinas agendadas: três implementações, três modelos de durabilidade.** O CronCreate do Claude Code é nativo mas session-scoped — as tarefas vivem na conversa atual e expiram em 7 dias; para durabilidade real, o caminho é GitHub Actions como gatilho externo. O OpenClaw tem cron nativo dentro do Gateway — persistente, independente de sessão, sobrevive a restarts e mudanças de modelo, sem dependência de serviço externo. O Codex tem Automations nativo com sintaxe cron, suportando thread automations (loops dentro de uma conversa) e standalone automations (execuções independentes com contexto fresco) — sem necessidade de GitHub Actions.
 
 !!! note "Por que a convergência importa"
     Quando múltiplos times independentes chegam à mesma estrutura sem coordenação prévia, isso é sinal de que a estrutura é correta — não uma convenção arbitrária, mas uma solução que emergiu das restrições reais do problema. Arquivos markdown como lei do agente, memória persistente separada do contexto de sessão, skills como unidade de workflow reutilizável, hooks para automação reativa — esses padrões sobreviveram ao teste de produção em sistemas muito diferentes.
@@ -76,16 +88,18 @@ graph TB
         PM["project-manager\norquestra"]
         PO["product-owner\nbacklog + kanban"]
         TL["tech-lead\nrevisão + merge"]
-        DE["data-engineer\npipelines"]
+        DE["data-engineer\ndata-ai-pipelines"]
         QA["qa\ntestes"]
     end
 
     subgraph EXECUCAO["Plano de Execução"]
-        direction LR
-        DS["data-scientist\nanalisa dados"]
-        MKT["marketing-strategist\nnarrativa editorial"]
+        direction TB
         DE2["data-engineer\ncoleta + transforma"]
-        PUB["publisher\nLinkedIn · Buffer"]
+        DS["data-scientist\ndata-ai-pipelines"]
+        MKT["marketing-strategist\nmarketing-social-media-pipelines"]
+        CRE["ai-engineer\ncreative-work-pipelines"]
+        PUB["publisher\nLinkedIn · Buffer · PDF · PPTX"]
+        DE2 --> DS --> MKT --> CRE --> PUB
     end
 
     LEI --> CONSTRUCAO
@@ -203,7 +217,7 @@ O plano de execução é onde o padrão dual se torna mais original.
 
 Em vez de um pipeline de dados determinístico com templates fixos — onde variáveis são preenchidas em posições pré-definidas e o output é sempre estruturalmente idêntico — o plano de execução usa agentes que *raciocinam* sobre o que fazer a cada execução.
 
-O exemplo mais concreto é um pipeline editorial diário. O fluxo começa com coleta de dados de uma API pública, transformação em camadas estruturadas (bronze → silver → analytics), e análise estatística. Até aqui, é engenharia de dados convencional. O que acontece depois é diferente.
+Para tornar o padrão concreto, tome como primeiro exemplo um pipeline editorial diário. O fluxo começa com coleta de dados de uma API pública, transformação em camadas estruturadas (bronze → silver → analytics), e análise estatística. Até aqui, é engenharia de dados convencional. O que acontece depois é diferente.
 
 O `data-scientist` lê os dados processados e produz uma análise com contexto histórico — não apenas "a taxa de presença hoje foi X%", mas "esta é a terceira queda consecutiva, o partido Y aparece pela primeira vez no top 3 de ausências, e o deputado Z acumula o maior número de faltas não justificadas do ano". Essa análise é entregue ao `marketing-strategist`, que não recebe um template para preencher — recebe os dados brutos do raciocínio do `data-scientist` e decide qual é o ângulo editorial do dia.
 
@@ -246,9 +260,9 @@ Esta distinção é o que separa o padrão dual de um pipeline de automação co
 
 O padrão se manifesta de forma diferente em cada domínio — mas a estrutura é sempre a mesma. O que muda é o que os agentes produzem, não como o sistema os governa.
 
-**Em pesquisa em saúde**, o plano de execução não publica posts — produz ciência. O `epidemiologist` atua como gateway obrigatório: é ele quem define o desenho do estudo, deriva o framework de questão (PICO, PICo, PCC), e convoca as especialidades clínicas necessárias com base no protocolo aprovado pelo `principal-investigator`. O `biostatistician` entra em *modo execução* — distinto do seu *modo design* usado no kickoff — para rodar a análise estatística sobre os dados coletados: modelos de regressão, análise de sobrevida, cálculo de intervalos de confiança. O `academic-writer` recebe os resultados validados e produz a seção de resultados e discussão no formato IMRAD, seguindo o reporting guideline adequado (CONSORT para ensaios clínicos, STROBE para estudos observacionais). O `dissemination-strategist` fecha o ciclo identificando periódicos com JIF compatível, preparando a submissão, e adaptando o abstract para registro em ClinicalTrials.gov quando aplicável. Cada etapa é rastreada em issues. Cada entregável é versionado. A cadeia de comando é a mesma — só o domínio dos agentes muda.
+**Para dar um segundo exemplo, considere pesquisa em saúde**: o plano de execução não publica posts — produz ciência. O `epidemiologist` atua como gateway obrigatório: é ele quem define o desenho do estudo, deriva o framework de questão (PICO, PICo, PCC), e convoca as especialidades clínicas necessárias com base no protocolo aprovado pelo `principal-investigator`. O `biostatistician` entra em *modo execução* — distinto do seu *modo design* usado no kickoff — para rodar a análise estatística sobre os dados coletados: modelos de regressão, análise de sobrevida, cálculo de intervalos de confiança. O `academic-writer` recebe os resultados validados e produz a seção de resultados e discussão no formato IMRAD, seguindo o reporting guideline adequado (CONSORT para ensaios clínicos, STROBE para estudos observacionais). O `dissemination-strategist` fecha o ciclo identificando periódicos com JIF compatível, preparando a submissão, e adaptando o abstract para registro em ClinicalTrials.gov quando aplicável. Cada etapa é rastreada em issues. Cada entregável é versionado. A cadeia de comando é a mesma — só o domínio dos agentes muda.
 
-**Em ciências sociais**, o plano de execução produz conhecimento acadêmico a partir de corpus textuais, arquivos históricos, dados de survey, ou entrevistas. O `qualitative-analyst` executa análise de discurso ou análise temática sobre o corpus coletado pelo `data-engineer`, consultando o `philosopher` para as ancoragens epistemológicas quando o referencial teórico exige. O `quantitative-analyst` roda modelos estatísticos sobre dados de survey em parceria com o `data-scientist`, submetendo os resultados à validação do `methodologist`. O `academic-writer` integra as análises numa revisão sistemática no formato PRISMA ou num artigo no padrão do periódico-alvo. O `dissemination-strategist` não apenas submete — adapta o texto para divulgação científica em linguagem acessível ao público não-especializado, mantendo rigor sem perder alcance. Aqui também: issues para cada etapa, versões para cada rascunho, revisão por pares integrada ao fluxo antes da submissão externa.
+**Como terceiro exemplo, tome ciências sociais**: o plano de execução produz conhecimento acadêmico a partir de corpus textuais, arquivos históricos, dados de survey, ou entrevistas. O `qualitative-analyst` executa análise de discurso ou análise temática sobre o corpus coletado pelo `data-engineer`, consultando o `philosopher` para as ancoragens epistemológicas quando o referencial teórico exige. O `quantitative-analyst` roda modelos estatísticos sobre dados de survey em parceria com o `data-scientist`, submetendo os resultados à validação do `methodologist`. O `academic-writer` integra as análises numa revisão sistemática no formato PRISMA ou num artigo no padrão do periódico-alvo. O `dissemination-strategist` não apenas submete — adapta o texto para divulgação científica em linguagem acessível ao público não-especializado, mantendo rigor sem perder alcance. Aqui também: issues para cada etapa, versões para cada rascunho, revisão por pares integrada ao fluxo antes da submissão externa.
 
 ---
 
