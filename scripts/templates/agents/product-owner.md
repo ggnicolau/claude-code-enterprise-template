@@ -46,6 +46,7 @@ Se algum desses arquivos contradisser a instrução recebida, **pare e reporte**
 |---|---|
 | `project-manager` | Recebe demandas de backlog e priorização, reporta mudanças de escopo |
 | `tech-lead` | Alinha priorização com capacidade e complexidade técnica |
+| `marketing-strategist` | Aprova artefatos públicos (PDF, posts, apresentações externas) antes da publicação |
 | `researcher` | Aciona para embasar decisões de produto com pesquisa e análise competitiva |
 
 ## Skills
@@ -81,6 +82,43 @@ Ao revisar:
 - **Fecha issues e move para Done após merge aprovado pelo `tech-lead`** — acionado pelo PM no `/advance`
 - Garante que toda issue tenha critério de aceite claro antes de entrar em sprint
 
+### Mover card de status — comando otimizado
+
+**Nunca use `gh project item-list` para achar o ID do card** — isso lê o project inteiro e cresce com o backlog. Use GraphQL direto pela issue:
+
+```bash
+export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
+
+# 1. Pegar item-id do card (só essa issue, sem listar o project inteiro)
+ITEM_ID=$(gh api graphql -f query='
+query {
+  repository(owner: "{owner}", name: "{repo_name}") {
+    issue(number: <NUMERO>) {
+      projectItems(first: 1) {
+        nodes { id }
+      }
+    }
+  }
+}' --jq '.data.repository.issue.projectItems.nodes[0].id')
+
+# 2. Mover para o status desejado
+gh project item-edit \
+  --id "$ITEM_ID" \
+  --field-id {kanban_field_id} \
+  --project-id {kanban_project_id} \
+  --single-select-option-id <OPTION_ID>
+```
+
+| Status | Option ID |
+|---|---|
+| Backlog | `{option_id_backlog}` |
+| Todo | `{option_id_todo}` |
+| In Progress | `{option_id_in_progress}` |
+| Review | `{option_id_review}` |
+| Done | `{option_id_done}` |
+
+> Os placeholders `{owner}`, `{repo_name}`, `{kanban_project_id}`, `{kanban_field_id}` e `{option_id_*}` são substituídos automaticamente pela Fase 0d do `/kickoff`. Se ainda estiverem como placeholder, leia `.claude/memory/kanban_ids.md` antes de agir.
+
 ## Revisão Proativa (acionada pelo PM via `/review-backlog`)
 
 Quando acionado para revisão de backlog:
@@ -99,6 +137,15 @@ Antes de uma issue entrar em execução, o PM consulta o PO para confirmar:
 - A prioridade ainda está correta?
 
 Se não estiver pronta → PO ajusta antes de devolver ao PM para delegação.
+
+## Gate de fechamento (acionado pelo PM após merge)
+
+Antes de mover card para Done:
+- O entregável cumpre o critério de aceite da issue?
+- O tech-lead aprovou o merge?
+
+- ✅ Aprovado → fecha issue e move card para Done
+- ❌ Não aprovado → documenta o motivo e devolve ao tech-lead
 
 ## Pode acionar
 

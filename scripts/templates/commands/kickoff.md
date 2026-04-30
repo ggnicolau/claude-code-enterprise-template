@@ -10,7 +10,85 @@ Antes de perguntar sobre o produto em si, você precisa entender **quem** está 
 
 **Regra crítica:** nesta fase, **NÃO use `AskUserQuestion`**. Perguntas fechadas são hostis ao modo como fundadores articulam uma visão. Pergunte em texto livre, um bloco por vez, aguarde respostas longas. Só mude para formato estruturado na Fase 1.
 
-### Fase 0a — Perguntas narrativas abertas
+### Fase 0a — IDs do Kanban
+
+Com o Kanban já criado pelo wizard, descubra os IDs do projeto via GraphQL e injete no `product-owner.md`:
+
+```bash
+export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
+
+# Descobrir project-id, field-id e option-ids de uma vez
+gh api graphql -f query='
+query {
+  repository(owner: "{owner}", name: "{repo_name}") {
+    projectsV2(first: 1) {
+      nodes {
+        id
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              options { id name }
+            }
+          }
+        }
+      }
+    }
+  }
+}'
+```
+
+Com o output, extraia e salve em `.claude/memory/kanban_ids.md`:
+
+```markdown
+---
+name: Kanban IDs
+description: IDs do GitHub Project Kanban — project-id, field-id e option-ids dos status
+type: project
+---
+
+## IDs
+
+- **project-id**: <valor>
+- **field-id (Status)**: <valor>
+
+## Option IDs
+
+| Status | Option ID |
+|---|---|
+| Backlog | <valor> |
+| Todo | <valor> |
+| In Progress | <valor> |
+| Review | <valor> |
+| Done | <valor> |
+```
+
+Em seguida, injete os valores no `product-owner.md` substituindo os placeholders:
+
+```bash
+sed -i \
+  -e 's|{owner}|<owner>|g' \
+  -e 's|{repo_name}|<repo_name>|g' \
+  -e 's|{kanban_project_id}|<project-id>|g' \
+  -e 's|{kanban_field_id}|<field-id>|g' \
+  -e 's|{option_id_backlog}|<option-id-backlog>|g' \
+  -e 's|{option_id_todo}|<option-id-todo>|g' \
+  -e 's|{option_id_in_progress}|<option-id-in-progress>|g' \
+  -e 's|{option_id_review}|<option-id-review>|g' \
+  -e 's|{option_id_done}|<option-id-done>|g' \
+  .claude/agents/product-owner.md
+```
+
+Commit:
+```bash
+mkdir -p .claude/memory
+git add .claude/memory/kanban_ids.md .claude/agents/product-owner.md
+git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0a"
+git push
+```
+
+### Fase 0b — Perguntas narrativas abertas
 
 Faça estas quatro perguntas **uma de cada vez**, em texto livre. Aguarde a resposta completa antes de seguir.
 
@@ -22,15 +100,15 @@ Faça estas quatro perguntas **uma de cada vez**, em texto livre. Aguarde a resp
 
 4. **Ancoragens estratégicas e exclusões explícitas.** Quais referências, benchmarks, empresas ou abordagens você quer que influenciem este produto? E — igualmente importante — **o que você quer deixar de fora**? Há modelos de negócio, segmentos de mercado ou abordagens que você quer explicitamente evitar?
 
-### Fase 0b — Síntese e confirmação
+### Fase 0c — Síntese e confirmação
 
 Com as quatro respostas em mãos, devolva uma **síntese estruturada** ao fundador, em prosa curta:
 
 > "Pelo que entendi: você vem de [trajetória], o projeto nasce de [motivação essencial], o contexto é [equipe/institucional], e você quer ancorar em [X, Y, Z] — evitando [W]. Isso faz sentido? O que falta ou está torto?"
 
-**Esta fase é a salvaguarda contra retrabalho.** O fundador confirma o mapa completo **antes** de qualquer especialista ser acionado. Se houver correções, aceite e refaça a síntese. Só avance para Fase 0c depois de confirmação explícita.
+**Esta fase é a salvaguarda contra retrabalho.** O fundador confirma o mapa completo **antes** de qualquer especialista ser acionado. Se houver correções, aceite e refaça a síntese. Só avance para Fase 0d depois de confirmação explícita.
 
-### Fase 0c — Persistência em memória
+### Fase 0d — Persistência em memória
 
 Após confirmação, grave automaticamente quatro arquivos em `.claude/memory/`:
 
