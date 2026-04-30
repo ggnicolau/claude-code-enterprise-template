@@ -10,101 +10,7 @@ Antes de perguntar sobre o produto em si, você precisa entender **quem** está 
 
 **Regra crítica:** nesta fase, **NÃO use `AskUserQuestion`**. Perguntas fechadas são hostis ao modo como fundadores articulam uma visão. Pergunte em texto livre, um bloco por vez, aguarde respostas longas. Só mude para formato estruturado na Fase 1.
 
-### Fase 0a — Perguntas narrativas abertas
-
-Faça estas quatro perguntas **uma de cada vez**, em texto livre. Aguarde a resposta completa antes de seguir.
-
-1. **Trajetória profissional e contexto.** Me conta sobre sua experiência, projetos anteriores, área de expertise, o que já construiu. De onde você vem profissionalmente?
-
-2. **Rede, equipe e contexto institucional.** Com quem você trabalha ou pretende trabalhar neste projeto? Há co-fundadores, investidores, advisors, parceiros estratégicos já envolvidos? Qual é o contexto — startup, projeto interno, produto independente?
-
-3. **Motivação e gênese do projeto.** O que te trouxe a este problema? Pode ser qualquer coisa — uma frustração pessoal, uma observação de mercado, uma oportunidade percebida, uma experiência anterior. **A história de origem não é decoração, é o DNA estratégico do produto.** Fale sem filtro.
-
-4. **Ancoragens estratégicas e exclusões explícitas.** Quais referências, benchmarks, empresas ou abordagens você quer que influenciem este produto? E — igualmente importante — **o que você quer deixar de fora**? Há modelos de negócio, segmentos de mercado ou abordagens que você quer explicitamente evitar?
-
-### Fase 0b — Síntese e confirmação
-
-Com as quatro respostas em mãos, devolva uma **síntese estruturada** ao fundador, em prosa curta:
-
-> "Pelo que entendi: você vem de [trajetória], o projeto nasce de [motivação essencial], o contexto é [equipe/institucional], e você quer ancorar em [X, Y, Z] — evitando [W]. Isso faz sentido? O que falta ou está torto?"
-
-**Esta fase é a salvaguarda contra retrabalho.** O fundador confirma o mapa completo **antes** de qualquer especialista ser acionado. Se houver correções, aceite e refaça a síntese. Só avance para Fase 0c depois de confirmação explícita.
-
-### Fase 0c — Persistência em memória
-
-Após confirmação, grave automaticamente quatro arquivos em `.claude/memory/`:
-
-**`.claude/memory/user_profile.md`**
-
-```markdown
----
-name: User Profile
-description: Trajetória, expertise e contexto do fundador — base de contexto para todos os agentes
-type: user
----
-
-## Trajetória profissional
-[síntese da resposta 1]
-
-## Rede, equipe e contexto institucional
-[síntese da resposta 2]
-
-## Preferências estratégicas declaradas
-[extrair da resposta 4 o que é sobre abordagem e modelo de negócio]
-```
-
-**`.claude/memory/project_genesis.md`**
-
-```markdown
----
-name: Project Genesis
-description: De onde veio o projeto — motivação, ancoragens estratégicas e exclusões
-type: project
----
-
-## Motivação e gênese
-[síntese da resposta 3 — preservar a história de origem íntegra]
-
-## Ancoragens estratégicas desejadas
-[da resposta 4]
-
-## Exclusões explícitas
-[da resposta 4 — o que deve ficar de fora do produto e da estratégia]
-```
-
-**`.claude/memory/project_history.md`**
-
-```markdown
----
-name: Project History
-description: Changelog humano do projeto — o que aconteceu, decisões tomadas e por quê, do mais novo ao mais antigo
-type: project
----
-
-## YYYY-MM-DD
-- Kickoff concluído: problem statement aprovado, perfil do fundador registrado
-- [síntese das principais decisões tomadas nas fases 0–1]
-```
-
-**`.claude/memory/MEMORY.md`**
-
-```markdown
-# MEMORY.md
-
-- [User Profile](user_profile.md) — trajetória e contexto do fundador
-- [Project Genesis](project_genesis.md) — motivação e ancoragens estratégicas do projeto
-- [Project History](project_history.md) — changelog humano do projeto, cronológico reverso
-```
-
-Commit os quatro arquivos:
-```bash
-mkdir -p .claude/memory
-git add .claude/memory/
-git commit -m "docs(system): add project genesis, user profile and history from /kickoff phase 0"
-git push
-```
-
-### Fase 0d — IDs do Kanban
+### Fase 0a — IDs do Kanban
 
 Com o Kanban já criado pelo wizard, descubra os IDs do projeto via GraphQL e injete no `product-owner.md`:
 
@@ -176,8 +82,103 @@ sed -i \
 
 Commit:
 ```bash
+mkdir -p .claude/memory
 git add .claude/memory/kanban_ids.md .claude/agents/product-owner.md
-git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0d"
+git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0a"
+git push
+```
+
+### Fase 0b — Perguntas narrativas abertas
+
+Faça estas quatro perguntas **uma de cada vez**, em texto livre. Aguarde a resposta completa antes de seguir.
+
+1. **Trajetória profissional e contexto.** Me conta sobre sua experiência, projetos anteriores, área de expertise, o que já construiu. De onde você vem profissionalmente?
+
+2. **Rede, equipe e contexto institucional.** Com quem você trabalha ou pretende trabalhar neste projeto? Há co-fundadores, investidores, advisors, parceiros estratégicos já envolvidos? Qual é o contexto — startup, projeto interno, produto independente?
+
+3. **Motivação e gênese do projeto.** O que te trouxe a este problema? Pode ser qualquer coisa — uma frustração pessoal, uma observação de mercado, uma oportunidade percebida, uma experiência anterior. **A história de origem não é decoração, é o DNA estratégico do produto.** Fale sem filtro.
+
+4. **Ancoragens estratégicas e exclusões explícitas.** Quais referências, benchmarks, empresas ou abordagens você quer que influenciem este produto? E — igualmente importante — **o que você quer deixar de fora**? Há modelos de negócio, segmentos de mercado ou abordagens que você quer explicitamente evitar?
+
+### Fase 0c — Síntese e confirmação
+
+Com as quatro respostas em mãos, devolva uma **síntese estruturada** ao fundador, em prosa curta:
+
+> "Pelo que entendi: você vem de [trajetória], o projeto nasce de [motivação essencial], o contexto é [equipe/institucional], e você quer ancorar em [X, Y, Z] — evitando [W]. Isso faz sentido? O que falta ou está torto?"
+
+**Esta fase é a salvaguarda contra retrabalho.** O fundador confirma o mapa completo **antes** de qualquer especialista ser acionado. Se houver correções, aceite e refaça a síntese. Só avance para Fase 0d depois de confirmação explícita.
+
+### Fase 0d — Persistência em memória
+
+Após confirmação, grave automaticamente quatro arquivos em `.claude/memory/`:
+
+**`.claude/memory/user_profile.md`**
+
+```markdown
+---
+name: User Profile
+description: Trajetória, expertise e contexto do fundador — base de contexto para todos os agentes
+type: user
+---
+
+## Trajetória profissional
+[síntese da resposta 1]
+
+## Rede, equipe e contexto institucional
+[síntese da resposta 2]
+
+## Preferências estratégicas declaradas
+[extrair da resposta 4 o que é sobre abordagem e modelo de negócio]
+```
+
+**`.claude/memory/project_genesis.md`**
+
+```markdown
+---
+name: Project Genesis
+description: De onde veio o projeto — motivação, ancoragens estratégicas e exclusões
+type: project
+---
+
+## Motivação e gênese
+[síntese da resposta 3 — preservar a história de origem íntegra]
+
+## Ancoragens estratégicas desejadas
+[da resposta 4]
+
+## Exclusões explícitas
+[da resposta 4 — o que deve ficar de fora do produto e da estratégia]
+```
+
+**`.claude/memory/project_history.md`**
+
+```markdown
+---
+name: Project History
+description: Changelog humano do projeto — o que aconteceu, decisões tomadas e por quê, do mais novo ao mais antigo
+type: project
+---
+
+## YYYY-MM-DD
+- Kickoff concluído: problem statement aprovado, perfil do fundador registrado
+- [síntese das principais decisões tomadas nas fases 0–1]
+```
+
+**`.claude/memory/MEMORY.md`**
+
+```markdown
+# MEMORY.md
+
+- [User Profile](user_profile.md) — trajetória e contexto do fundador
+- [Project Genesis](project_genesis.md) — motivação e ancoragens estratégicas do projeto
+- [Project History](project_history.md) — changelog humano do projeto, cronológico reverso
+```
+
+Commit os quatro arquivos:
+```bash
+mkdir -p .claude/memory
+git add .claude/memory/
+git commit -m "docs(system): add project genesis, user profile and history from /kickoff phase 0"
 git push
 ```
 
