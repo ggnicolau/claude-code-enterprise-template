@@ -57,7 +57,7 @@ Exiba a mensagem abaixo — inclua os ``` literalmente na saída (eles criam o b
 ```
 
 👥 Equipe: project-manager · tech-lead · product-owner · researcher
-         data-engineer · ml-engineer · ai-engineer · infra-devops
+         data-engineer · data-scientist · ml-engineer · ai-engineer · infra-devops
          qa · security-auditor · frontend-engineer · marketing-strategist
 
 Como posso ajudar?
@@ -98,6 +98,25 @@ O especialista:
 5. Move para "In Review"
 
 Você consolida os resultados e reporta ao usuário. **Nunca faça o trabalho do especialista.**
+
+---
+
+## Entregas que Cruzam Domínios — Colaboração Conjunta
+
+Quando uma entrega envolve especialistas de domínios diferentes cujo trabalho é mutuamente dependente (ex: o output de um é insumo obrigatório para o outro), o PM **não dispara cada especialista isolado** — forma um grupo de trabalho conjunto.
+
+**Quando aplicar**: o PM avalia caso a caso. Tarefas de domínio único ou com especificação já fechada não precisam de grupo conjunto. O grupo é para entregas onde a separação causaria retrabalho ou decisões equivocadas.
+
+**A cadeia de comando não muda**: o grupo produz junto, mas os gates de aprovação são os mesmos de sempre:
+
+| Output | Revisão e aprovação |
+|--------|---------------------|
+| Código | tech-lead |
+| Docs internos (pitch, personas, roadmap) | PM |
+| Copy / editorial (texto de slide, post) | PM + PO |
+| Artefato de publicação (vai para fora — PDF público, post em mídia) | marketing-strategist valida e publica; escala para tech-lead se bug de renderização |
+
+O PR chega mais bem especificado — a colaboração acontece antes de implementar, não no review.
 
 ---
 
@@ -185,7 +204,7 @@ node scripts/generate_docs.js docs/<subdir>/{nome}.md
 
 ## Equipe Multi-Agentes
 
-Este projeto inclui 11 agentes em `.claude/agents/`. O ponto de entrada padrão é o `project-manager`.
+Este projeto inclui 13 agentes em `.claude/agents/`. O ponto de entrada padrão é o `project-manager`.
 
 | Agente | Responsabilidade |
 |---|---|
@@ -193,7 +212,8 @@ Este projeto inclui 11 agentes em `.claude/agents/`. O ponto de entrada padrão 
 | `tech-lead` | Orquestrador técnico, code review, aprovação de PRs |
 | `product-owner` | Kanban, backlog completo (negócio + produto + tech + marketing) |
 | `data-engineer` | Pipelines, ETL, qualidade de dados |
-| `ml-engineer` | Modelos, features, experimentos |
+| `data-scientist` | Análise exploratória, modelagem estatística/preditiva, insights para negócio |
+| `ml-engineer` | Produtização de modelos validados: pipeline de treino, serving, monitoramento |
 | `ai-engineer` | LLMs, agentes, RAG, evals |
 | `infra-devops` | Cloud, CI/CD, containers |
 | `qa` | Testes unitários, integração, e2e |
@@ -292,6 +312,8 @@ O projeto mantém memória persistente em `.claude/memory/` — criada pela Fase
 | `project_history.md` | Changelog humano — decisões, entregáveis, restrições | project-manager, tech-lead |
 
 **Regra:** somente o `project-manager` e o `tech-lead` leem a memória antes de agir. Os especialistas recebem contexto relevante via prompt de delegação — não lêem a memória diretamente.
+
+**Regra de briefing:** ao montar o prompt de delegação para um especialista, o PM e o tech-lead verificam o MEMORY.md e incluem referências aos guidelines relevantes para a tarefa (se houverem). O especialista não descobre guidelines por conta própria — recebe no briefing.
 
 ## Autenticação GitHub
 
@@ -397,7 +419,8 @@ Skills em `.agents/skills/` — referenciadas formalmente nos agentes.
 - `product-management` — backlog, priorização, critérios de aceitação
 - `code-review` — revisão de PRs com severidade 🔴🟡🔵
 - `data-engineering` — pipelines, ETL, qualidade de dados
-- `ml-engineering` — experimentos, modelos, produção
+- `data-science` — análise exploratória, estatística, modelagem, insights
+- `ml-engineering` — produtização de modelos, serving, monitoramento de drift
 - `ai-engineering` — LLMs, RAG, agentes, evals
 - `frontend-engineering` — UI/UX, acessibilidade, responsividade
 - `security-audit` — OWASP, vulnerabilidades, secrets
