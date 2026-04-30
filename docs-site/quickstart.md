@@ -101,7 +101,8 @@ O kickoff conduz o discovery completo:
 
 | Fase | O que acontece |
 |---|---|
-| 0 | Criação da memória persistente — contexto do fundador, gênese, ancoragens |
+| 0a | IDs do Kanban descobertos via GraphQL e injetados no product-owner |
+| 0b–0d | Perguntas narrativas, síntese e criação da memória persistente |
 | 1 | Discovery com researcher |
 | 2 | Relatório + apresentação (PM) |
 | 3 | Backlog completo em 6 dimensões (PO) |
