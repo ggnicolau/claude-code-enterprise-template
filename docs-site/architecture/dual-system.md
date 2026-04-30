@@ -102,6 +102,54 @@ O que torna o padrão dual poderoso não é a existência dos dois planos separa
 
 ---
 
+## Papéis, cadeia de comando e interações permitidas
+
+Um sistema com muitos agentes só funciona de forma confiável se cada agente sabe exatamente três coisas: o que é seu papel, a quem responde, e com quem pode interagir diretamente. Sem essa clareza, o sistema degenera — agentes assumem responsabilidades de outros, tomam decisões que não são suas, criam dependências circulares, ou simplesmente ficam paralisados sem saber quem deve agir.
+
+No padrão dual, cada agente tem um papel único e não intercambiável, definido no seu arquivo `.claude/agents/<nome>.md` e reforçado pelo `CLAUDE.md`:
+
+| Agente | Papel | Nunca faz |
+|---|---|---|
+| `project-manager` | Ponto de entrada. Lê Kanban, delega, consolida, reporta. | Executa trabalho técnico ou editorial |
+| `product-owner` | Dono do backlog. Cria, prioriza e fecha issues. Árbitro do Kanban. | Faz merge de código |
+| `tech-lead` | Orquestrador técnico. Revisa código, aprova PRs, delega especialistas. | Escreve código de produto |
+| `data-engineer` | Pipelines, ETL, qualidade de dados. | Toma decisões de produto |
+| `data-scientist` | Análise exploratória, modelagem, insights. | Faz deploy em produção |
+| `marketing-strategist` | Narrativa, copy, publicação, go-to-market. | Valida dados brutos |
+| `qa` | Testes, cobertura, qualidade. | Faz merge do próprio trabalho |
+| `researcher` | Inteligência de mercado e técnica. Serve a todos. | Define prioridades |
+| `security-auditor` | Vulnerabilidades, auth, dados sensíveis. | Aprova PRs fora do escopo de segurança |
+
+A cadeia de comando é explícita e unidirecional na maior parte dos fluxos:
+
+```mermaid
+graph TD
+    U["👤 Usuário"] --> PM["project-manager"]
+    PM --> PO["product-owner"]
+    PM --> TL["tech-lead"]
+    PM --> RES["researcher"]
+    PM --> MKT["marketing-strategist"]
+    PO --> RES
+    PO --> MKT
+    TL --> DE["data-engineer"]
+    TL --> DS["data-scientist"]
+    TL --> AIE["ai-engineer"]
+    TL --> IDF["infra-devops"]
+    TL --> QA["qa"]
+    TL --> SEC["security-auditor"]
+    TL --> FE["frontend-engineer"]
+    TL --> RES
+```
+
+As interações laterais — entre especialistas sem passar pela cadeia de comando — são permitidas apenas quando explicitamente definidas no `CLAUDE.md`. O `data-scientist` pode colaborar com o `data-engineer` na especificação de um pipeline. O `marketing-strategist` pode consultar o `researcher` para inteligência de mercado. Mas o `data-engineer` não reporta resultados diretamente ao `product-owner` — passa pelo `tech-lead`, que consolida e valida antes de escalar.
+
+Essa estrutura não é burocracia — é o que permite escalar para 13 agentes (ou 75, no template de saúde) sem que o sistema entre em colapso por ambiguidade de responsabilidade. Cada agente recebe um briefing que inclui exatamente o contexto que precisa — não mais, não menos — e sabe o que fazer com ele.
+
+!!! note "A regra do merge"
+    Nenhum agente faz merge do próprio trabalho. O especialista que implementa abre o PR. O `tech-lead` revisa e faz o merge. O `product-owner` fecha a issue. Essa separação não é apenas boa prática de engenharia — é o mecanismo que garante que nenhum entregável entra no projeto sem revisão de um agente com responsabilidade diferente do autor.
+
+---
+
 ## O plano de construção: governança que raramente se vê em projetos individuais
 
 O que é genuinamente raro no plano de construção deste template não é ter agentes — é o nível de governança que eles impõem e mantêm.
@@ -194,6 +242,60 @@ Esta distinção é o que separa o padrão dual de um pipeline de automação co
 
 ---
 
+## Kanban e issues como memória coletiva, canal de comunicação e fonte de rastreabilidade
+
+A seção anterior mostrou como o `CLAUDE.md` governa o comportamento dos agentes. Mas há uma camada de governança igualmente importante que opera de forma diferente — não como lei, mas como memória coletiva em construção permanente: o Kanban e as issues.
+
+Em sistemas multi-agentes convencionais, a comunicação entre agentes acontece dentro de uma sessão — um agente passa seu output para o próximo via contexto de conversa, e quando a sessão termina, essa troca desaparece. Aqui, a comunicação acontece *através do tempo*, mediada por artefatos persistentes que qualquer agente pode ler em qualquer sessão futura.
+
+**As issues são o canal de comunicação primário entre agentes com responsabilidades diferentes.** Quando o `tech-lead` revisa um PR e encontra um problema arquitetural que vai além do escopo da issue atual, ele não apenas rejeita o PR — ele abre uma nova issue descrevendo o problema, seu impacto, e o critério de aceite para a solução. O `product-owner` lê essa issue, a prioriza no contexto do backlog atual, e quando o `project-manager` acionar o `/advance` numa sessão futura, o problema estará documentado, priorizado, e pronto para delegação — sem que nenhuma informação tenha se perdido entre sessões.
+
+**Os cards do Kanban são o estado compartilhado do sistema.** Antes de qualquer ação, o `project-manager` lê o Kanban. Antes de qualquer delegação, o `product-owner` valida o estado dos cards. Antes de iniciar o trabalho, o especialista move o card para "In Progress" — sinalizando para todos os outros agentes que aquela issue está sendo trabalhada. Esse protocolo simples elimina a possibilidade de dois agentes trabalhando na mesma coisa em paralelo sem saber um do outro.
+
+**Os commits são a memória técnica do sistema.** Cada commit referencia a issue que resolve, carrega uma mensagem descritiva em Conventional Commits, e separa explicitamente mudanças de infraestrutura agentic (`(system)`) de mudanças de produto. Um agente que precisa entender por que uma determinada decisão técnica foi tomada pode rodar `git log` e reconstruir o raciocínio — não apenas o que mudou, mas o contexto da issue que motivou a mudança.
+
+!!! tip "Rastreabilidade como infraestrutura de confiança"
+    A rastreabilidade não serve apenas ao usuário — ela serve primariamente aos próprios agentes. Quando o `tech-lead` é acionado para revisar um PR semanas depois de a issue ter sido aberta, ele lê o histórico da issue, os comentários de planejamento, a especificação do critério de aceite, e o contexto da memória persistente — e chega ao review com o mesmo nível de informação que teria se tivesse acompanhado o desenvolvimento desde o início. Não há contexto perdido entre sessões porque o contexto nunca existiu apenas na sessão — ele foi escrito nos artefatos persistentes desde o início.
+
+**A explicabilidade é uma consequência estrutural, não um recurso adicionado.** Em sistemas opacos, você vê o output mas não sabe por que o agente fez o que fez. Aqui, cada decisão tem uma trilha: a issue que a motivou, o briefing que o agente recebeu, o PR que implementou a mudança, o review que a validou, e o commit que a registrou. Para o usuário, isso significa poder auditar qualquer entregável. Para os agentes, significa poder consultar qualquer decisão passada antes de tomar uma nova — sem depender de estar na mesma sessão em que a decisão original foi tomada.
+
+```mermaid
+graph LR
+    subgraph ARTEFATOS["Artefatos Persistentes"]
+        ISS["Issues\nplanejamento + critério de aceite\ncomentários entre agentes"]
+        KAN["Kanban\nestado atual do sistema\nvisível a todos os agentes"]
+        COM["Commits\nhistórico técnico\nreferência a issues"]
+        MEM["Memory\ndecisões estratégicas\nrestrições + âncoras"]
+    end
+
+    subgraph AGENTES["Agentes (qualquer sessão)"]
+        PM2["project-manager\nlê Kanban antes de agir"]
+        TL2["tech-lead\nlê issues + commits antes de revisar"]
+        SP2["especialista\nlê issue + briefing antes de implementar"]
+        PO2["product-owner\nlê Kanban + issues antes de priorizar"]
+    end
+
+    ISS --> PM2
+    ISS --> TL2
+    ISS --> SP2
+    ISS --> PO2
+    KAN --> PM2
+    KAN --> PO2
+    COM --> TL2
+    MEM --> PM2
+    MEM --> TL2
+
+    SP2 -->|"abre PR com contexto"| ISS
+    TL2 -->|"comenta review"| ISS
+    PO2 -->|"comenta priorização"| ISS
+    SP2 -->|"move card"| KAN
+    TL2 -->|"merge + commit"| COM
+```
+
+O resultado é um sistema onde a inteligência coletiva não existe apenas dentro de uma sessão — ela se acumula nos artefatos ao longo do tempo. Cada issue resolvida, cada decisão comentada, cada commit feito aumenta o contexto disponível para todos os agentes em todas as sessões futuras. O projeto fica mais fácil de operar conforme cresce — não mais difícil.
+
+---
+
 ## Como CLAUDE.md e Kanban governam os dois planos
 
 A coesão entre os dois planos depende de dois elementos centrais.
@@ -202,10 +304,10 @@ A coesão entre os dois planos depende de dois elementos centrais.
 
 Isso significa que as regras de comportamento são consistentes nos dois planos. O `data-engineer` que implementa uma nova feature de coleta de dados no plano de construção e o `data-engineer` que executa a coleta de produção no plano de execução seguem as mesmas convenções de commit, as mesmas regras de branch, a mesma lógica de logging estruturado. Não há dois conjuntos de regras para dois contextos — há um único conjunto que se aplica a tudo.
 
-**O Kanban é a fonte de verdade compartilhada.** No plano de construção, o Kanban rastreia o estado de cada issue — o que está em progresso, o que está em review, o que está concluído. No plano de execução, o Kanban registra execuções, falhas e timeouts como eventos rastreáveis. Um bug encontrado em produção durante uma execução da rotina diária pode se tornar uma issue no plano de construção sem que o usuário precise sair do sistema — o agente abre a issue, o `product-owner` a valida, e ela entra no backlog com o contexto completo de onde e como o problema foi encontrado.
+**O Kanban é a fonte de verdade compartilhada entre os dois planos.** No plano de construção, ele rastreia o estado de cada issue. No plano de execução, registra execuções, falhas e timeouts como eventos rastreáveis. Um bug encontrado em produção durante a execução de uma rotina pode se tornar uma issue no plano de construção sem que o usuário precise sair do sistema — o agente abre a issue com o contexto completo de onde e como o problema foi encontrado, o `product-owner` a valida, e ela entra no backlog pronta para delegação.
 
-!!! tip "A consequência prática"
-    Quando um pipeline de produção falha, o agente não apenas registra o erro em um log — ele abre uma issue no Kanban com o estágio onde falhou, o motivo do bloqueio, e o contexto necessário para reproduzir. O plano de construção recebe o problema já especificado, com critério de aceite claro derivado da falha real. O ciclo de feedback entre produção e desenvolvimento é automático e rastreável.
+!!! tip "O ciclo de feedback automático"
+    Quando um pipeline de produção falha, o agente não apenas registra o erro em um log — ele abre uma issue no Kanban com o estágio onde falhou, o motivo do bloqueio, e o contexto necessário para reproduzir. O plano de construção recebe o problema já especificado, com critério de aceite claro derivado da falha real. O feedback de produção para desenvolvimento é automático, rastreável, e não depende de nenhuma ação manual do usuário.
 
 A **memória persistente** em `.claude/memory/` completa o quadro. Ela armazena o perfil do fundador, a gênese do projeto, as âncoras estratégicas, o histórico de decisões e entregáveis aprovados. Esses arquivos são lidos pelo `project-manager` e pelo `tech-lead` antes de qualquer ação — garantindo que o contexto acumulado do projeto informa tanto uma decisão de produto no plano de construção quanto uma decisão editorial no plano de execução.
 
@@ -219,7 +321,7 @@ O `claude-code-enterprise-template` é o template base — agnóstico de domíni
 
 O processo de criação de um projeto filho via `/wizard` leva menos de dez minutos. O `/kickoff` que se segue conduz uma Fase 0 narrativa — onde o fundador ou pesquisador conta o contexto do projeto, sua trajetória, as âncoras estratégicas e as exclusões — e persiste tudo em memória antes de iniciar o discovery. O backlog resultante não é um conjunto de issues genéricas: é um plano específico para aquele projeto, com dimensões cobertas, prioridades justificadas, e critérios de aceite derivados do contexto real.
 
-Isso é o que raramente se vê em projetos individuais ou times pequenos: um backlog que funciona como artefato de produto de verdade — refinado, discutido, anotado, com história. Não uma lista de tarefas que vai ficando obsoleta.
+Isso é o que raramente se vê em projetos individuais ou times pequenos: um backlog que funciona como artefato de produto de verdade — refinado, discutido, anotado, com história. Não uma lista de tarefas que vai ficando obsoleta. A rastreabilidade e a explicabilidade não são recursos opcionais que você adiciona quando o projeto cresce — são a estrutura desde o primeiro commit.
 
 ---
 
@@ -235,11 +337,11 @@ O que ainda é fronteira:
 
 **A comunicação entre os dois planos ainda é parcialmente manual.** Um bug encontrado em produção pode virar issue automaticamente, mas a priorização dessa issue no backlog ainda depende de uma intervenção ou de uma rodada do `/advance`. Fechar esse loop completamente — onde o plano de execução alimenta o plano de construção de forma totalmente autônoma — é possível mas requer governança mais refinada sobre o que o agente pode fazer sem aprovação humana.
 
-**O contexto de sessão tem limites.** Pipelines complexos com muitos agentes e loops criativos consomem janela de contexto. Arquiteturas que externalizam estado — usando o briefing Markdown como fonte de verdade entre agentes em vez de depender do contexto da sessão — mitigam mas não eliminam esse limite.
+**O contexto de sessão tem limites.** Pipelines complexos com muitos agentes e loops criativos consomem janela de contexto. Arquiteturas que externalizam estado — usando o briefing Markdown e os artefatos persistentes como fonte de verdade entre agentes em vez de depender do contexto da sessão — mitigam mas não eliminam esse limite. É por isso que a rastreabilidade nos artefatos não é apenas boa prática: é o mecanismo que permite ao sistema funcionar além do limite de uma única sessão.
 
 Nenhum desses é um problema fundamental do padrão. São problemas de implementação — e o fato de que podem ser nomeados com precisão é sinal de que a arquitetura está madura o suficiente para que seus limites sejam visíveis.
 
 ---
 
 !!! quote "O insight central"
-    A virada não foi tecnológica no sentido estreito. Foi a combinação de modelos capazes o suficiente para seguir instruções complexas com fidelidade, uma arquitetura que convergiu para eliminar o overhead de framework, e a percepção de que o mesmo sistema pode construir e executar simultaneamente — sem que isso exija duas infraestruturas separadas, duas equipes de agentes com regras diferentes, ou dois sistemas de rastreamento independentes. Um `CLAUDE.md`. Um Kanban. Dois planos. Um produto.
+    A virada não foi tecnológica no sentido estreito. Foi a combinação de modelos capazes o suficiente para seguir instruções complexas com fidelidade, uma arquitetura que convergiu para eliminar o overhead de framework, e a percepção de que o mesmo sistema pode construir e executar simultaneamente — sem que isso exija duas infraestruturas separadas, duas equipes de agentes com regras diferentes, ou dois sistemas de rastreamento independentes. Um `CLAUDE.md`. Um Kanban. Papéis definidos. Dois planos. Um produto.
