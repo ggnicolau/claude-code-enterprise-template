@@ -44,12 +44,15 @@ Com o output, extraia e salve em `.claude/memory/kanban_ids.md`:
 ```markdown
 ---
 name: Kanban IDs
-description: IDs do GitHub Project Kanban — project-id, field-id e option-ids dos status
+description: IDs do GitHub Project Kanban — project-number, project-id, field-id e option-ids dos status
 type: project
 ---
 
 ## IDs
 
+- **owner**: <owner>
+- **repo**: <repo_name>
+- **project-number**: <número do projeto (usado pelo session_start hook)>
 - **project-id**: <valor>
 - **field-id (Status)**: <valor>
 

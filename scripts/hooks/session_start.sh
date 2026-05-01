@@ -8,8 +8,17 @@ if [ ! -f "$CLAUDE_PROJECT_DIR/scripts/new_repo.py" ]; then
     OWNER=$(gh repo view --json owner -q .owner.login 2>/dev/null) || true
     REPO=$(gh repo view --json name -q .name 2>/dev/null) || true
     if [ -n "$OWNER" ]; then
-      PROJECT_NUMBER=$(gh project list --owner "$OWNER" --format json 2>/dev/null | \
-        python3 -c "import json,sys; data=json.load(sys.stdin); repo='$REPO'; print(next((str(p['number']) for p in data.get('projects',[]) if p['title'] == repo + ' Kanban'), ''))" 2>/dev/null) || true
+      # Lê project-number do kanban_ids.md se existir (evita gh project list a cada sessão)
+      KANBAN_IDS="$CLAUDE_PROJECT_DIR/.claude/memory/kanban_ids.md"
+      PROJECT_NUMBER=""
+      if [ -f "$KANBAN_IDS" ]; then
+        PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' "$KANBAN_IDS" 2>/dev/null) || true
+      fi
+      # Fallback: descobrir via gh project list (projeto novo sem kanban_ids.md)
+      if [ -z "$PROJECT_NUMBER" ]; then
+        PROJECT_NUMBER=$(gh project list --owner "$OWNER" --format json 2>/dev/null | \
+          python3 -c "import json,sys; data=json.load(sys.stdin); repo='$REPO'; print(next((str(p['number']) for p in data.get('projects',[]) if p['title'] == repo + ' Kanban'), ''))" 2>/dev/null) || true
+      fi
       if [ -n "$PROJECT_NUMBER" ]; then
         BOARD_TMP=$(mktemp)
         CLOSED_TMP=$(mktemp)
