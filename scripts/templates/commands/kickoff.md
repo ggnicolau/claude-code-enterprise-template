@@ -64,27 +64,11 @@ type: project
 | Done | <valor> |
 ```
 
-Em seguida, injete os valores no `product-owner.md` substituindo os placeholders:
-
-```bash
-sed -i \
-  -e 's|{owner}|<owner>|g' \
-  -e 's|{repo_name}|<repo_name>|g' \
-  -e 's|{kanban_project_id}|<project-id>|g' \
-  -e 's|{kanban_field_id}|<field-id>|g' \
-  -e 's|{option_id_backlog}|<option-id-backlog>|g' \
-  -e 's|{option_id_todo}|<option-id-todo>|g' \
-  -e 's|{option_id_in_progress}|<option-id-in-progress>|g' \
-  -e 's|{option_id_review}|<option-id-review>|g' \
-  -e 's|{option_id_done}|<option-id-done>|g' \
-  .claude/agents/product-owner.md
-```
-
 Commit:
 ```bash
 mkdir -p .claude/memory
-git add .claude/memory/kanban_ids.md .claude/agents/product-owner.md
-git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0a"
+git add .claude/memory/kanban_ids.md
+git commit -m "docs(system): persist kanban IDs from /kickoff phase 0a"
 git push
 ```
 

@@ -84,15 +84,18 @@ Ao revisar:
 
 ### Mover card de status — comando otimizado
 
+**Antes de qualquer operação no Kanban**, leia `.claude/memory/kanban_ids.md` para obter `project-id`, `field-id`, `owner`, `repo` e os `option-ids` de cada status. Esse arquivo é a fonte de verdade dos IDs — não hardcode valores aqui.
+
 **Nunca use `gh project item-list` para achar o ID do card** — isso lê o project inteiro e cresce com o backlog. Use GraphQL direto pela issue:
 
 ```bash
 export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
 
+# Ler IDs de .claude/memory/kanban_ids.md antes de rodar
 # 1. Pegar item-id do card (só essa issue, sem listar o project inteiro)
 ITEM_ID=$(gh api graphql -f query='
 query {
-  repository(owner: "{owner}", name: "{repo_name}") {
+  repository(owner: "<owner>", name: "<repo>") {
     issue(number: <NUMERO>) {
       projectItems(first: 1) {
         nodes { id }
@@ -104,20 +107,10 @@ query {
 # 2. Mover para o status desejado
 gh project item-edit \
   --id "$ITEM_ID" \
-  --field-id {kanban_field_id} \
-  --project-id {kanban_project_id} \
-  --single-select-option-id <OPTION_ID>
+  --field-id <field-id do kanban_ids.md> \
+  --project-id <project-id do kanban_ids.md> \
+  --single-select-option-id <option-id do kanban_ids.md>
 ```
-
-| Status | Option ID |
-|---|---|
-| Backlog | `{option_id_backlog}` |
-| Todo | `{option_id_todo}` |
-| In Progress | `{option_id_in_progress}` |
-| Review | `{option_id_review}` |
-| Done | `{option_id_done}` |
-
-> Os placeholders `{owner}`, `{repo_name}`, `{kanban_project_id}`, `{kanban_field_id}` e `{option_id_*}` são substituídos automaticamente pela Fase 0d do `/kickoff`. Se ainda estiverem como placeholder, leia `.claude/memory/kanban_ids.md` antes de agir.
 
 ## Revisão Proativa (acionada pelo PM via `/review-backlog`)
 
