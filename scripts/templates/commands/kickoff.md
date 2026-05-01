@@ -310,7 +310,9 @@ Aguarde aprovação explícita antes de prosseguir.
 Somente após aprovação, leia o Kanban e acione o especialista correto para a primeira issue em **Todo**:
 
 ```bash
-gh project item-list <number> --owner <owner> --format json
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
+OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' .claude/memory/kanban_ids.md)
+gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json
 ```
 
 Delegue via subagente (`Task`) ao especialista da área. **Você não executa o trabalho — você delega e consolida.**
