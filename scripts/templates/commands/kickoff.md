@@ -12,18 +12,19 @@ Antes de perguntar sobre o produto em si, você precisa entender **quem** está 
 
 ### Fase 0a — IDs do Kanban
 
-Com o Kanban já criado pelo wizard, descubra os IDs do projeto via GraphQL e injete no `product-owner.md`:
+Com o Kanban já criado pelo wizard, descubra os IDs do projeto via GraphQL:
 
 ```bash
 export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
 
-# Descobrir project-id, field-id e option-ids de uma vez
+# Descobrir project-number, project-id, field-id e option-ids de uma vez
 gh api graphql -f query='
 query {
   repository(owner: "{owner}", name: "{repo_name}") {
     projectsV2(first: 1) {
       nodes {
         id
+        number
         fields(first: 20) {
           nodes {
             ... on ProjectV2SingleSelectField {
@@ -39,17 +40,22 @@ query {
 }'
 ```
 
+O campo `number` retornado é o **project-number** (inteiro usado em comandos `gh project item-list`, `gh project item-add`, etc.). O campo `id` é o **project-id** global (usado em `gh project item-edit` via GraphQL).
+
 Com o output, extraia e salve em `.claude/memory/kanban_ids.md`:
 
 ```markdown
 ---
 name: Kanban IDs
-description: IDs do GitHub Project Kanban — project-id, field-id e option-ids dos status
+description: IDs do GitHub Project Kanban — project-number, project-id, field-id e option-ids dos status
 type: project
 ---
 
 ## IDs
 
+- **owner**: <owner>
+- **repo**: <repo_name>
+- **project-number**: <número do projeto (usado pelo session_start hook)>
 - **project-id**: <valor>
 - **field-id (Status)**: <valor>
 
@@ -64,27 +70,11 @@ type: project
 | Done | <valor> |
 ```
 
-Em seguida, injete os valores no `product-owner.md` substituindo os placeholders:
-
-```bash
-sed -i \
-  -e 's|{owner}|<owner>|g' \
-  -e 's|{repo_name}|<repo_name>|g' \
-  -e 's|{kanban_project_id}|<project-id>|g' \
-  -e 's|{kanban_field_id}|<field-id>|g' \
-  -e 's|{option_id_backlog}|<option-id-backlog>|g' \
-  -e 's|{option_id_todo}|<option-id-todo>|g' \
-  -e 's|{option_id_in_progress}|<option-id-in-progress>|g' \
-  -e 's|{option_id_review}|<option-id-review>|g' \
-  -e 's|{option_id_done}|<option-id-done>|g' \
-  .claude/agents/product-owner.md
-```
-
 Commit:
 ```bash
 mkdir -p .claude/memory
-git add .claude/memory/kanban_ids.md .claude/agents/product-owner.md
-git commit -m "docs(system): inject kanban IDs into product-owner from /kickoff phase 0a"
+git add .claude/memory/kanban_ids.md
+git commit -m "docs(system): persist kanban IDs from /kickoff phase 0a"
 git push
 ```
 
@@ -285,10 +275,11 @@ Status das issues ao criar:
 
 ### Passo 5.3 — Vinculação obrigatória ao GitHub Project
 
+Leia `project-number` e `owner` de `.claude/memory/kanban_ids.md` antes de rodar:
+
 ```bash
 OWNER=$(gh repo view --json owner -q .owner.login)
-PROJECT_NUMBER=$(gh project list --owner "$OWNER" --format json \
-  | jq -r '.projects[] | select(.title | endswith("Kanban")) | .number' | head -1)
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
 
 ISSUE_URL=$(gh issue create \
   --title "..." \

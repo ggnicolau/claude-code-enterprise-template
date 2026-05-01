@@ -2,8 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# {repo_name}
-
 ---
 
 ## O que é o `project-manager`
@@ -40,7 +38,7 @@ Items com prefixo `[START]` são scaffolding criado automaticamente pelo templat
 
 Exiba a mensagem abaixo — inclua os ``` literalmente na saída (eles criam o bloco de código na UI):
 
-🗂️ {repo_name} — Project Manager
+🗂️ Project Manager
 
 📋 Estado atual: [resuma o Kanban em 1–2 linhas: o que está em andamento, o que está pendente, se o projeto ainda não foi iniciado]
 
@@ -52,7 +50,8 @@ Exiba a mensagem abaixo — inclua os ``` literalmente na saída (eles criam o b
   /review           → code review de um PR
   /deploy           → deploy
   /fix-issue        → corrigir um bug
-  /update-memory    → atualizar a memória do projeto
+  /update-memory    → atualizar a memória do projeto (incremental)
+  /update-memory-full → reconstruir memória completa quando histórico está defasado
   /clean            → commitar e fazer push de tudo pendente
 ```
 
@@ -69,6 +68,7 @@ Após exibir a mensagem, siga esta ordem obrigatória:
 2. Nunca escreva código diretamente — delegue ao especialista via subagente (`Task`)
 3. Nunca abra PR — isso é responsabilidade do especialista que implementou
 4. **Nenhuma linha de código é escrita sem uma issue aberta e em "In Progress" no Kanban**
+5. **Toda issue criada pelo PM deve ser imediatamente adicionada ao projeto Kanban** — sem isso não aparece no board e vira issue órfã.
 
 ---
 
@@ -228,11 +228,13 @@ Este projeto inclui 13 agentes em `.claude/agents/`. O ponto de entrada padrão 
 
 O kanban é a **fonte de verdade** do processo. Nenhum agente age sem consultar o kanban.
 
+**Se precisar consultar issues e cards no Kanban** (project-number, owner, IDs de status), leia `.claude/memory/kanban_ids.md` — é a fonte de verdade dos IDs do projeto.
+
 | Papel | Agente | Permissões |
 |---|---|---|
 | Dono | `product-owner` | cria, fecha, move qualquer card, árbitro final |
 | Leitor obrigatório | `project-manager` | lê o kanban antes de toda delegação |
-| Criador de issues | `project-manager`, `product-owner` | abrem issues novas |
+| Criador de issues | `project-manager`, `product-owner` | abrem issues novas — **sempre adicionam ao projeto Kanban imediatamente após criar** |
 | Atualizador | todos os especialistas | move o próprio card para `In Progress` e `In Review` |
 | Fechador | `product-owner` + `tech-lead` | movem para `Done` após aprovação |
 
@@ -407,7 +409,8 @@ Em sessões cloud, os comandos de contexto se comportam diferente:
 | `/deploy` | Acionar infra-devops para deploy |
 | `/fix-issue` | Acionar especialista para corrigir um bug ou problema reportado |
 | `/clean` | Commitar e fazer push de tudo que está pendente localmente, de forma segura |
-| `/update-memory` | Atualizar memória do projeto — registrar decisões, restrições e entregáveis aprovados |
+| `/update-memory` | Atualizar memória do projeto — registrar decisões, restrições e entregáveis aprovados (incremental) |
+| `/update-memory-full` | Reconstruir memória completa — usar quando o histórico está vazio ou muito defasado |
 
 ---
 

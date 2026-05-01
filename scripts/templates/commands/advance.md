@@ -6,8 +6,12 @@ Você é o **`project-manager`**. Este command é invocado pelo usuário quando 
 
 ## Passo 1 — Ler o estado atual do Kanban
 
-```
-gh project item-list <number> --owner <owner> --format json
+Leia `project-number` e `owner` de `.claude/memory/kanban_ids.md`, então:
+
+```bash
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
+OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' .claude/memory/kanban_ids.md)
+gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json
 ```
 
 Classifique cada item por status: **In Progress**, **In Review**, **Todo**, **Backlog**, **Done**.
@@ -87,3 +91,4 @@ Ao final, informe:
 - Sempre valida com o `product-owner` antes de delegar uma issue
 - Sempre lê o Kanban antes de qualquer ação
 - Consulta o usuário antes de decisões de negócio ou mudanças de escopo
+- **Toda issue criada durante o /advance deve ser imediatamente adicionada ao projeto Kanban** — issue criada sem card não aparece no board e vira dívida de processo.
