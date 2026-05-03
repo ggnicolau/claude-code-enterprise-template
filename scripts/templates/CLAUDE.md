@@ -144,52 +144,129 @@ O PR chega mais bem especificado — a colaboração acontece antes de implement
 
 ---
 
-## Estrutura de Documentação
+## Arquitetura Dual Multi-Agent System
 
-Todos os documentos gerados por commands devem ser salvos em `docs/` seguindo esta estrutura:
+Este projeto adota o padrão **Dual Multi-Agent System** — dois mundos claramente separados, ambos operados pelos mesmos 13 agentes mas com regras diferentes:
+
+### Mundo 1 — Sistema/Backoffice (raiz do repo)
+
+Onde o sistema agentic vive. Estrutura **rígida e padronizada** — todo projeto Cadeira Vazia herda do enterprise-template.
+
+```
+.claude/                ← agentes, commands, hooks, memória
+CLAUDE.md, AGENTS.md    ← regras do sistema agentic
+pyproject.toml, uv.lock ← infra Python
+docs/                   ← documentação produzida pelos agentes (estrutura abaixo)
+data/                   ← pipelines de dados (raw/bronze/silver/gold)
+scripts/                ← utilitários do sistema
+src/                    ← código produtizado
+tests/                  ← suíte de testes
+```
+
+Commits que mexem aqui usam escopo `(system)`: `chore(system): ...`, `docs(system): ...`.
+
+### Mundo 2 — Produtos (`products/<produto>/`)
+
+Onde os produtos vivem. Estrutura **livre por produto** — cada produto define o próprio formato (briefings, runs, configurações próprias).
+
+```
+products/
+├── <produto-a>/                      ← um produto (estrutura livre)
+│   ├── <config-do-produto>.md
+│   └── <sub-rotina>/
+│       └── runs/<YYYY-MM-DD>/        ← uma execução
+├── <produto-b>/...
+```
+
+Commits que mexem aqui usam escopo do produto ou sem escopo: `feat: ...`, `docs: ...`.
+
+### Regra de fronteira
+
+Os agentes alternam entre os dois mundos conforme a tarefa. Quando estão no Mundo 1, **as regras de sistema valem** (estrutura rígida, versionamento documental obrigatório, escopo `(system)` no commit). Quando estão no Mundo 2 dentro de `products/<produto>/`, **a estrutura é o que o produto define** — as regras de sistema (Conventional Commits, Kanban, branching) continuam valendo, mas a forma dos artefatos é livre.
+
+---
+
+## Estrutura de `docs/`
+
+`docs/` está dentro do Mundo 1 (Sistema). É **organizado por agente** — cada agente escreve apenas em sua própria pasta:
 
 ```
 docs/
-├── research/       → /research, /competitive-analysis, /synthesize-research
-│   └── assets/     → dados brutos, fontes, tabelas de apoio
-├── product/        → /personas, /prd, /user-journey, /roadmap, /metrics
-│   └── assets/     → wireframes, personas visuais, etc.
-├── business/       → /pitch, /kickoff (relatório + apresentação)
-│   └── assets/     → scripts de geração (gen_pptx.js, gen_xlsx.py), imagens
-├── process/        → /onboarding, /deploy-checklist, /incident-response
-│   └── assets/     → scripts do Excel, templates
-├── tech/           → /architecture, /system-design, /tech-debt, /testing-strategy
-│   └── assets/     → diagramas, ADRs de apoio
-└── updates/        → /stakeholder-update versionado por data (YYYY-MM-DD.md)
-    └── assets/     → gráficos, prints de métricas
+├── business/                    ← agentes de negócio
+│   ├── product-owner/
+│   ├── marketing-strategist/
+│   ├── researcher/
+│   └── project-manager/
+├── tech/                        ← agentes técnicos
+│   ├── tech-lead/
+│   ├── data-engineer/
+│   ├── data-scientist/
+│   ├── ml-engineer/
+│   ├── ai-engineer/
+│   ├── frontend-engineer/
+│   ├── infra-devops/
+│   ├── qa/
+│   └── security-auditor/
+└── (subpastas legadas — research/, product/, process/, setup/, updates/, generated/)
 ```
 
 Regras:
-- **Nenhum agente salva documento diretamente em `docs/` raiz** — sempre na subpasta correspondente.
-- **Scripts de geração de artefatos** (gen_pptx.js, gen_xlsx.py, etc.) ficam em `assets/` da subpasta correspondente.
+- **Cada agente escreve apenas em sua própria pasta** (`docs/business/<agente>/` ou `docs/tech/<agente>/`).
+- **Nenhum agente salva documento diretamente em `docs/` raiz** — sempre na subpasta do agente.
+- Cada pasta de agente tem `.gitkeep` para versionar a estrutura mesmo vazia.
+- As subpastas legadas (`research/`, `product/`, etc.) podem conter material histórico — não criar conteúdo novo lá.
+
+### Frontmatter YAML obrigatório
+
+Todo `.md` em `docs/` começa com este header:
+
+```yaml
+---
+title: <título do documento>
+authors:
+  - <agent-slug>
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+---
+```
+
+- `authors`: lista de slugs (`data-engineer`, `tech-lead`, ...). Quem cria entra primeiro. Quem revisa e ainda não está na lista, **anexa-se ao final**. Quem revisa algo que já assina, **não muda nada**. Ordem é cronológica de primeiro toque.
+- `created`: data do primeiro write — **imutável**.
+- `updated`: data do último write — atualizada a cada revisão.
 
 ---
 
 ## Versionamento de Documentos
 
-Todo documento em `docs/` segue a convenção obrigatória de versionamento — nunca sobrescreva uma versão anterior.
+Todo documento versionável (em `docs/`, em `products/<rotina>/`, ou qualquer outro local que use a convenção) segue a regra abaixo — nunca sobrescreva uma versão anterior, e o arquivo vigente sempre tem **nome estável**.
 
 ### Convenção de nome
 
 ```
-docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md
+<dir>/{nome}.md                                       ← VIGENTE (nome estável, sem data, sem versão)
+<dir>/archive/{nome}_YYYY-MM-DD_v{N}.md               ← histórico (data do arquivamento + versão)
 ```
 
-Exemplos: `relatorio_2026-04-28_v1.md`, `apresentacao_2026-04-28_v2.md`, `arquitetura_2026-04-28_v1.md`
+Exemplos:
+- Vigente: `docs/business/project-manager/relatorio.md`, `products/<produto>/<arquivo>.md`
+- Archive: `docs/business/project-manager/archive/relatorio_2026-04-28_v1.md`, `products/<produto>/archive/<arquivo>_2026-05-02_v1.md`
+
+**Semântica da data no archive:** `YYYY-MM-DD` é a **data em que a versão foi arquivada** (saiu de vigência), obtida no momento do `git mv` via `date +%Y-%m-%d`. Não é a data em que a versão foi criada nem a data do último mtime do arquivo. Isso é determinístico e o agente não precisa ler o conteúdo do .md para decidir o nome.
+
+**Por que nome estável no vigente:** quando o arquivo carrega data+versão no nome, todo referenciador precisa ser atualizado a cada revisão. Com nome estável, commands, agentes e scripts nunca quebram — só o conteúdo muda.
 
 ### Fluxo de revisão
 
 Ao revisar um documento existente:
-1. `git mv docs/<subdir>/{nome}_YYYY-MM-DD_v{N}.md docs/<subdir>/archive/{nome}_YYYY-MM-DD_v{N}.md`
-2. Criar `docs/<subdir>/{nome}_YYYY-MM-DD_v{N+1}.md` com o conteúdo revisado
-3. `git commit -m "docs: revise {nome} v{N} → v{N+1} ({motivo})"`
+1. Capture a data de hoje: `TODAY=$(date +%Y-%m-%d)`
+2. Determine `N` = (última versão em `<dir>/archive/{nome}_*_v*.md`) + 1, ou `1` se não há archive
+3. `git mv <dir>/{nome}.md <dir>/archive/{nome}_${TODAY}_v${N}.md`
+4. Recriar `<dir>/{nome}.md` com o conteúdo revisado
+5. `git commit -m "docs: revisar {nome} (v{N} → v{N+1}, {motivo})"`
 
-A pasta `archive/` é gerada automaticamente pelo `generate_docs.js` — não deletar arquivos de archive.
+A pasta `archive/` é criada quando necessário e nunca é deletada — preserva o histórico completo.
+
+**Atenção semântica:** o conteúdo do .md vigente pode ter um header tipo `**Versão:** 6.0 | **Data:** 2026-05-02` — essa data interna é "quando a versão entrou em vigência" e é diferente da data que vai no nome do archive (que é "quando saiu de vigência"). As duas datas convivem sem conflito.
 
 ### Geração de PDF/DOCX/PPTX
 
