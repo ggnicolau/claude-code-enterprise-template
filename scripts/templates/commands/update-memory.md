@@ -48,14 +48,25 @@ Para cada cluster de 2-3 PRs/issues que você está prestes a documentar como bu
 
 **Regra de ouro:** se ler os bullets isolados faz alguém perder a história, agrupe.
 
-**Critério de inclusão:**
+**Critério de inclusão — o que entra:**
+
+O histórico é sobre o **projeto** — suas decisões, seus entregáveis, suas restrições. A pergunta central é: *isso diz algo sobre onde o projeto está ou para onde vai?*
+
 - Decisões que poderiam ter sido diferentes (arquiteturais, de produto, editoriais)
-- Restrições descobertas que afetam o projeto
+- Restrições descobertas que afetam o projeto (limitações de API, de canal, de métrica)
 - Entregáveis significativos aprovados pelo fundador
 - Pivots ou mudanças de direção com contexto do porquê
 - **Fechamento de lacuna estrutural ou virada de fundamento** — quando combinação de entregas tira o projeto de plano provisório/arbitrário e coloca em plano fundamentado/citável
 
-**Não entra:** bugs corrigidos sem impacto na direção, detalhes de implementação, progresso operacional rotineiro, mudanças de infraestrutura agentic sem impacto editorial.
+**Não entra:**
+- Bugs corrigidos sem impacto na direção do projeto
+- Detalhes de implementação (campo X adicionado, função Y refatorada)
+- Progresso operacional rotineiro
+- **Mudanças de infraestrutura agentic** (agentes `.claude/agents/`, hooks, CLAUDE.md, settings do framework, regras de orquestração) — ficam no git log, não são sobre o projeto
+
+**Atenção na linha tech vs sistema:** código de produto (`products/<produto>/`), pipelines, publishers, templates visuais, guidelines editoriais — são do projeto e entram. A pergunta de desempate: *se deletar o produto, o item deixaria de fazer sentido?* → é do projeto, entra. Continuaria fazendo sentido como parte do framework? → é sistema, não entra.
+
+**Issues são a unidade primária** — cada issue fechada representa uma decisão ou entregável. Consulte o PR correspondente quando precisar de mais contexto ou quando o PR traz algo relevante que a issue não descreve. PRs são detalhe e complemento, não a unidade de análise.
 
 **Formato:**
 
