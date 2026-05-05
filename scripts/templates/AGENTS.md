@@ -22,37 +22,39 @@ Este projeto usa uma equipe de 13 agentes especializados. O ponto de entrada pad
 
 ## Arquitetura
 
+O `project-manager` é o **único agente do time com acesso à Task tool** (limitação do Claude Agent SDK: subagentes não spawnam subagentes). Todo spawn de especialista — inclusive os técnicos sob autoridade do `tech-lead` — passa pelo PM. As setas abaixo representam **autoridade técnica e fluxo de briefing**, não a cadeia de spawn (que é sempre PM → especialista).
+
 ```mermaid
 graph TD
-    U(["👤 Fundador / PM"]) --> PM["🗂️ Project Manager\nponto de entrada"]
+    U(["👤 Fundador / PM"]) --> PM["🗂️ Project Manager\núnico spawnador via Task"]
 
-    PM --> PO["📋 Product Owner\nkanban + backlog"]
-    PM --> TL["🧠 Tech Lead\norquestrador técnico"]
-    PM --> RES["🔍 Researcher\npesquisa técnica e de produto"]
-    PM --> MKT["📣 Marketing Strategist\ngo-to-market + mídia"]
+    PM -->|spawna| PO["📋 Product Owner\nkanban + backlog"]
+    PM -->|spawna| TL["🧠 Tech Lead\nplano técnico + code review"]
+    PM -->|spawna| RES["🔍 Researcher\npesquisa técnica e de produto"]
+    PM -->|spawna| MKT["📣 Marketing Strategist\ngo-to-market + mídia"]
 
-    PO --> RES
-    PO --> MKT
     PO --> KB[("GitHub Kanban")]
 
-    TL --> DE["🔧 Data Engineer\npipelines + ETL"]
-    TL --> DS["📈 Data Scientist\nanálise + modelagem"]
-    TL --> MLE["📊 ML Engineer\nprodutização de modelos"]
-    TL --> AIE["🤖 AI Engineer\nLLMs + agentes + RAG"]
-    TL --> IDF["☁️ Infra & DevOps\ncloud + CI/CD"]
-    TL --> QA["✅ QA\ntestes + qualidade"]
-    TL --> RES
-    TL --> SEC["🔒 Security Auditor\nsegurança + vulnerabilidades"]
-    TL --> FE["🖥️ Frontend Engineer\nweb + UI + UX"]
+    TL -.->|recomenda PM acionar| DE["🔧 Data Engineer\npipelines + ETL"]
+    TL -.->|recomenda PM acionar| DS["📈 Data Scientist\nanálise + modelagem"]
+    TL -.->|recomenda PM acionar| MLE["📊 ML Engineer\nprodutização de modelos"]
+    TL -.->|recomenda PM acionar| AIE["🤖 AI Engineer\nLLMs + agentes + RAG"]
+    TL -.->|recomenda PM acionar| IDF["☁️ Infra & DevOps\ncloud + CI/CD"]
+    TL -.->|recomenda PM acionar| QA["✅ QA\ntestes + qualidade"]
+    TL -.->|recomenda PM acionar| SEC["🔒 Security Auditor\nsegurança + vulnerabilidades"]
+    TL -.->|recomenda PM acionar| FE["🖥️ Frontend Engineer\nweb + UI + UX"]
 
-    FE --> IDF
-    DS --> MLE
-    DS --> MKT
-    MLE --> DE
-    AIE --> MLE
-    QA --> DE
-    IDF --> SEC
+    PM -->|spawna com briefing do TL| DE
+    PM -->|spawna com briefing do TL| DS
+    PM -->|spawna com briefing do TL| MLE
+    PM -->|spawna com briefing do TL| AIE
+    PM -->|spawna com briefing do TL| IDF
+    PM -->|spawna com briefing do TL| QA
+    PM -->|spawna com briefing do TL| SEC
+    PM -->|spawna com briefing do TL| FE
 ```
+
+**Como ler:** setas sólidas (`-->|spawna|`) mostram quem o PM aciona via Task. Setas tracejadas (`-.->|recomenda PM acionar|`) mostram a recomendação técnica do `tech-lead` no plano de execução — o spawn em si é sempre feito pelo PM.
 
 ## Contexto obrigatório antes de agir
 
@@ -163,8 +165,16 @@ updated: YYYY-MM-DD
 
 ## Como Acionar Agentes
 
-O `project-manager` delega via `Task` tool. Exemplo:
+Apenas o `project-manager` tem acesso à `Task` tool. Os demais agentes (incluindo o `tech-lead`) não podem spawnar subagentes — quando precisam de outro especialista, retornam ao PM um plano ou recomendação, e o PM faz o spawn.
 
-> "Invoque o `data-engineer` para executar a issue #14"
+Para tarefa técnica, o fluxo é:
+
+> 1. PM spawna `tech-lead`
+> 2. `tech-lead` retorna **plano de execução** (especialistas, briefing, ordem)
+> 3. PM spawna cada especialista listado, com o briefing que veio do `tech-lead`
+
+Exemplo direto (apenas após o plano técnico do TL):
+
+> "Invoque o `data-engineer` para executar a issue #14, com briefing técnico definido pelo tech-lead"
 
 Os agentes só são acionados dentro de um `/comando` ativo. Fora de comando, o project-manager apenas conversa.

@@ -55,20 +55,29 @@ Com as issues validadas, identifique quais são **independentes entre si** (não
 - Issues independentes → dispare um `Task` para cada uma **em paralelo**
 - Issues com dependência entre si → execute em sequência, na ordem correta
 
-Cada `Task` segue o mesmo padrão: aciona o `tech-lead`, que delega ao especialista correto.
+Por uma limitação do SDK, **apenas o PM tem Task tool** — o `tech-lead` não pode delegar diretamente. O fluxo correto para tarefas técnicas é:
 
-| Tipo de issue | Especialista (via tech-lead) |
+1. PM aciona `tech-lead` via `Task` com a issue como contexto
+2. `tech-lead` retorna **plano de execução**: especialista(s), briefing técnico, ordem
+3. PM dispara `Task` para cada especialista listado, com o briefing definido pelo TL
+
+Para tarefas não-técnicas (produto, pesquisa, marketing), o PM aciona o agente diretamente sem passar pelo TL.
+
+| Tipo de issue | Roteiro |
 |---|---|
-| Pipelines, ETL, dados | `data-engineer` |
-| Modelos, ML, experimentos | `ml-engineer` |
-| LLMs, agentes, RAG | `ai-engineer` |
-| Cloud, CI/CD, infra | `infra-devops` |
-| Testes, qualidade | `qa` |
-| Web, UI, UX | `frontend-engineer` |
-| Segurança, auth, dados sensíveis | `security-auditor` |
-| Pesquisa, benchmarks | `researcher` |
-| Backlog, roadmap, produto | `product-owner` |
-| Arquitetura, decisões técnicas | `tech-lead` |
+| Pipelines, ETL, dados | TL define plano → PM spawna `data-engineer` |
+| Modelos, ML, experimentos | TL define plano → PM spawna `ml-engineer` |
+| LLMs, agentes, RAG | TL define plano → PM spawna `ai-engineer` |
+| Cloud, CI/CD, infra | TL define plano → PM spawna `infra-devops` |
+| Testes, qualidade | TL define plano → PM spawna `qa` |
+| Web, UI, UX | TL define plano → PM spawna `frontend-engineer` |
+| Segurança, auth, dados sensíveis | TL define plano → PM spawna `security-auditor` |
+| Pesquisa, benchmarks | PM spawna `researcher` direto |
+| Backlog, roadmap, produto | PM spawna `product-owner` direto |
+| Arquitetura, decisões técnicas | PM spawna `tech-lead` direto (TL executa, não delega) |
+| Marketing, go-to-market, artefatos públicos | PM spawna `marketing-strategist` direto |
+
+Issues **independentes** (não compartilham dados, módulos ou outputs) podem ser paralelizadas: dispare múltiplos `Task` em uma única mensagem (após o `tech-lead` ter definido o plano de cada uma).
 
 ---
 
