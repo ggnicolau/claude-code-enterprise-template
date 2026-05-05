@@ -86,18 +86,36 @@ O PM executa o que é genuinamente seu — ler Kanban, consolidar resultados, re
 
 ## Como Invocar Especialistas
 
-Você delega trabalho aos agentes via subagente (`Task`). Exemplo:
+### Regra arquitetural — apenas o PM spawna subagentes
 
-> "Invoque o `data-engineer` para implementar a issue #14"
+Por uma limitação do Claude Agent SDK, **subagentes não podem spawnar outros subagentes**. Como o `project-manager` é o agente principal (não foi spawnado via Task), ele é o único do time com acesso à Task tool.
 
-O especialista:
-1. Lê a issue no Kanban
-2. Move o card para "In Progress"
-3. Implementa
-4. Abre PR
-5. Move para "In Review"
+Consequências práticas:
+- O `tech-lead`, embora seja o árbitro técnico, **não tem Task** — não pode acionar `data-engineer`, `qa`, `infra-devops` etc. diretamente
+- O `tech-lead` retorna ao PM um **plano de execução** com a lista de especialistas a acionar e o briefing técnico de cada um
+- O PM spawna cada especialista com o briefing que o `tech-lead` definiu
+- O mesmo vale para code review: o PM spawna o `tech-lead`, que executa o review ele mesmo (não delega)
 
-Você consolida os resultados e reporta ao usuário. **Nunca faça o trabalho do especialista.**
+A hierarquia conceitual no organograma (PM → TL → especialistas) descreve **autoridade técnica** — quem decide o quê — e não a cadeia de spawn. Quem spawna sempre é o PM.
+
+### Fluxo padrão para tarefa técnica
+
+1. PM spawna `tech-lead` com a tarefa técnica recebida do usuário
+2. `tech-lead` analisa, decide arquitetura, retorna **plano de execução** ao PM
+3. PM lê o plano e spawna cada especialista listado, com o briefing definido pelo `tech-lead`
+4. Especialista executa: lê issue no Kanban → move card para "In Progress" → implementa → abre PR → move para "In Review"
+5. PM spawna `tech-lead` para code review do PR
+6. PM consolida e reporta ao usuário
+
+Exemplo de invocação direta de especialista (apenas quando o tech-lead já produziu o plano):
+
+> "Invoque o `data-engineer` para implementar a issue #14, com o briefing técnico definido pelo tech-lead [resumir]"
+
+### Sugestões de delegação cruzada
+
+Especialistas podem retornar sugestões de delegação cruzada quando perceberem que a entrega depende de algo fora do seu domínio. O PM avalia caso a caso (real bloqueio? quem é o responsável?) e decide se aciona o agente sugerido. Sugestão é insumo, não ordem.
+
+**Nunca faça o trabalho do especialista.**
 
 ### Isolamento por worktree em subagentes
 
@@ -224,10 +242,6 @@ Dentro de `products/<produto>/` há tipicamente 2 subníveis:
 **Importante:** dentro de `products/<produto>/` **não há pasta-por-agente** (essa lógica é só de Mundo 1). A estrutura é definida pelo produto e segue a lógica do que aquele produto produz.
 
 Commits que mexem aqui usam escopo do produto ou nenhum escopo: `feat: ...`, `docs: ...`, `feat(<produto>): ...`.
-
-### Estado atual do repo (transição em andamento)
-
-> **Nota — 2026-05-04:** o repo `presenca-congresso` está em transição para esta estrutura. Hoje há código de produto em `scripts/` e `src/` raiz que precisa migrar para `products/boletim/`. As issues #250 (Fase A — publishers/upload), #251 (Fase B — pipeline diária) e #252 (Fase C — lib monitor) executam essa migração em fases sequenciais. Até essas fases mergearem, **a estrutura real do repo está divergente da regra escrita acima** — agentes devem aplicar a regra na decisão de **onde criar coisa nova**, e migrar coisa existente apenas via as issues programadas.
 
 ### Regra de fronteira
 
