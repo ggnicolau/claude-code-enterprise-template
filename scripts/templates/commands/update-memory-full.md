@@ -67,18 +67,24 @@ Agrupe a saída por data para facilitar a auditoria do Passo 3.
 
 ### Passo 3 — Auditoria comparativa (passo decisivo deste command)
 
-Para **cada data** com atividade no Passo 2, compare:
+Para **cada data** com atividade no Passo 2, compare. **Datas presentes no histórico não estão isentas de auditoria** — auditoria é obrigatória para todas as datas, não só para as ausentes.
+
+**Anti-padrão a evitar:** ver que o histórico tem datas recentes com entradas bem escritas e processar só as datas ausentes. Isso é `/update-memory` disfarçado e é exatamente o que este command existe para evitar.
 
 **(a) Datas presentes no `project_history.md`:**
-- Conte PRs/issues fechados naquela data vs. entradas no histórico
-- Se a proporção for desigual (ex: 8 PRs no dia, só 2 entradas no histórico) → **red flag**, investigar o que pode estar faltando
-- Para cada PR/issue da data, decidir: já está coberto por alguma entrada? Merece nova entrada?
+- Conte **issues fechadas** naquela data vs. entradas no histórico (issues são a unidade primária — cada issue fechada representa uma decisão ou entregável)
+- Se a proporção for desigual (ex: 16 issues fechadas, 4 entradas no histórico) → **red flag**, investigar o que pode estar faltando
+- Para cada issue da data, decidir: já está coberta por alguma entrada? Merece nova entrada?
+- Consulte o PR correspondente quando precisar de mais contexto ou quando o PR traz algo relevante que a issue não descreve — PRs são detalhe e complemento, não a unidade primária
 
 **(b) Datas ausentes no `project_history.md`:**
-- Há PRs/issues fechados naquela data?
-- Algum se enquadra nos critérios de inclusão (abaixo)? Se sim, é uma data **ausente** que precisa ser inserida — pode ser data antiga ou recente.
+- Há issues fechadas naquela data?
+- Alguma se enquadra nos critérios de inclusão (abaixo)? Se sim, é uma data **ausente** que precisa ser inserida — pode ser data antiga ou recente.
 
 **Critério de seleção — o que entra no histórico:**
+
+O histórico é sobre o **projeto** — suas decisões, seus entregáveis, suas restrições. A pergunta central é: *isso diz algo sobre onde o projeto está ou para onde vai?*
+
 - Decisões que poderiam ter sido diferentes (arquiteturais, de produto, editoriais)
 - Restrições descobertas que afetam o projeto (limitações de API, de canal, de métrica)
 - Entregáveis significativos aprovados pelo fundador
@@ -90,7 +96,9 @@ Para **cada data** com atividade no Passo 2, compare:
 - Bugs corrigidos sem impacto na direção do projeto
 - Detalhes de implementação (campo X adicionado, função Y refatorada)
 - Progresso operacional rotineiro de issues
-- Mudanças de infraestrutura agentic (agentes, hooks, memória) sem impacto editorial — ficam no git log
+- **Mudanças de infraestrutura agentic** (agentes `.claude/agents/`, hooks, CLAUDE.md, settings do framework, regras de orquestração, memória do sistema) — ficam no git log, não são sobre o projeto
+
+**Atenção na linha tech vs sistema:** nem todo PR/issue técnico é infraestrutura agentic. Código de produto (`products/<produto>/`), pipelines, publishers, templates visuais, guidelines editoriais — são do projeto e entram. A pergunta é: *isso existe por causa do produto, ou por causa do framework agentic?* Se deletar o produto, o item deixaria de fazer sentido? → é do projeto, entra. Continuaria fazendo sentido como parte do framework? → é sistema, não entra.
 
 #### Auditoria narrativa — buscar viradas compostas
 
