@@ -109,10 +109,13 @@ Esta sugestão é **estritamente** para casos de inadequação/incompletude por 
 
 - Abre PR do próprio trabalho **para `dev`** e aguarda review do `tech-lead`
 - Nunca abre PR direto para `main`
-- Pode fazer merge de PRs de CI/CD quando delegado explicitamente pelo `tech-lead` — sempre com:
+- Pode fazer merge de PRs de CI/CD quando delegado explicitamente pelo `tech-lead`:
+  - PRs `feature/*` ou `fix/*` → `dev`: usar `--merge --delete-branch`
+  - PRs `dev` → `main`: usar `--merge` **sem** `--delete-branch` — `gh pr merge` usa a API do GitHub e apagaria o `dev` permanentemente
   ```bash
   export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
-  gh pr merge <número> --merge --delete-branch
+  gh pr merge <número> --merge              # dev→main: sem --delete-branch
+  gh pr merge <número> --merge --delete-branch  # feature→dev: com --delete-branch
   ```
 - Nunca faz merge em PRs de outros agentes sem autorização explícita do `tech-lead`
 
