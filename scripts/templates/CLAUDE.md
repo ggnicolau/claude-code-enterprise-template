@@ -507,6 +507,12 @@ feature/* → dev → main
 - Mudanças em `.claude/`, `CLAUDE.md`, `AGENTS.md` também seguem essa regra — nunca push direto
 - `main` só recebe merge quando o usuário pedir explicitamente
 
+**Regra crítica — `--delete-branch` e proteção de `dev`:**
+- `--delete-branch` **só** em PRs de `feature/*` ou `fix/*` → `dev` — nunca em PRs de `dev` → `main`
+- Quando o PR é `dev → main`, usar `gh pr merge --merge` **sem** `--delete-branch`
+- Motivo: `gh pr merge --delete-branch` usa a API do GitHub e não é bloqueado pelo `deny` do settings.json — apaga o branch remoto silenciosamente, inclusive o `dev`
+- Todo trabalho começa em `feature/*` ou `fix/*` — nunca commitar direto em `dev`, mesmo para mudanças de sistema (`CLAUDE.md`, commands, agents)
+
 ## Convenção de Commits
 
 Todos os commits seguem **Conventional Commits** com escopo obrigatório para diferenciar infraestrutura agentic de trabalho de produto:
