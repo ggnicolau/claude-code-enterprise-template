@@ -197,6 +197,14 @@ src/                    ← código importável do framework (NÃO de produto)
 tests/                  ← testes do framework (NÃO de produto)
 ```
 
+**Regra de proteção dos arquivos de sistema:**
+
+Arquivos de Mundo 1 (`.claude/`, `CLAUDE.md`, `AGENTS.md`, templates, commands, hooks, agentes) são **universais** — servem a qualquer projeto que herda do enterprise-template. Por isso:
+
+1. **Nunca modificar arquivos de sistema sem requisição explícita do usuário.** Mesmo que uma melhoria pareça óbvia, não altere. Leia, use como contexto, mas não edite sem pedido direto.
+2. **Nunca referenciar o projeto atual em arquivos de sistema.** Nomes de produto (`Cadeira Vazia`, `boletim`, `presenca-congresso`), caminhos específicos (`products/boletim/`), tecnologias específicas do produto — nada disso entra em arquivos universais. Esses arquivos precisam fazer sentido em qualquer projeto.
+3. **Exemplos em arquivos de sistema são hipotéticos.** Se precisar ilustrar uma regra com exemplo concreto, use nomes fictícios genéricos (`products/<produto>/`, `meu-projeto`, `pipeline_x.py`). Nunca use dados reais do projeto atual como exemplo — mesmo que o exemplo tenha vindo de uma situação real, ele deve parecer hipotético para quem ler no futuro.
+
 **Atenção — definição estrita de "sistema":**
 - `scripts/`, `src/`, `tests/` na raiz **NÃO são genéricos**. Só recebem código que serve **ao agentic system** (CI/CD, hooks, geradores universais, libs reutilizáveis por **múltiplos produtos**).
 - Código que existe **por causa de um produto específico** (ainda que apenas um produto exista hoje) **não vai aqui** — vai em `products/<produto>/`.
