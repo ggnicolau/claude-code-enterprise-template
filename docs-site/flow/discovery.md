@@ -37,7 +37,7 @@ sequenceDiagram
     User->>PM: Aprovação
 
     Note over PM: Fase 0d — Persistência de memória
-    PM->>PM: Cria .claude/memory/ (4 arquivos)
+    PM->>PM: Cria project/memory/ (4 arquivos)
 
     Note over PM,RES: Fase 1 — Discovery
     PM->>RES: Task: pesquisa de mercado e técnica
@@ -69,7 +69,7 @@ A Fase 0 é a mais importante. Ela configura a infraestrutura do projeto e cria 
 
 ### 0a — IDs do Kanban
 
-Antes de qualquer conversa, o PM descobre os IDs do GitHub Project via GraphQL e os injeta no `product-owner.md`, habilitando o PO a mover cards sem configuração manual. Salva também em `.claude/memory/kanban_ids.md`.
+Antes de qualquer conversa, o PM descobre os IDs do GitHub Project via GraphQL e os injeta no `product-owner.md`, habilitando o PO a mover cards sem configuração manual. Salva também em `project/memory/kanban_ids.md`.
 
 ### 0b — Perguntas narrativas
 
@@ -87,10 +87,10 @@ O PM consolida as respostas em uma síntese e pede confirmação antes de persis
 
 ### 0d — Persistência
 
-Cria `.claude/memory/` com 4 arquivos:
+Cria `project/memory/` com 4 arquivos:
 
 ```
-.claude/memory/
+project/memory/
 ├── MEMORY.md          # índice
 ├── kanban_ids.md      # IDs do GitHub Project (project-id, field-id, option-ids)
 ├── user_profile.md    # quem é o fundador
@@ -119,8 +119,8 @@ O product-owner cria issues cobrindo todas as dimensões do projeto:
 
 Ao final do kickoff:
 
-- IDs do Kanban injetados no `product-owner.md` e salvos em `.claude/memory/kanban_ids.md`
-- Memória persistente criada em `.claude/memory/` (user_profile, project_genesis, project_history)
+- IDs do Kanban injetados no `product-owner.md` e salvos em `project/memory/kanban_ids.md`
+- Memória persistente criada em `project/memory/` (user_profile, project_genesis, project_history)
 - Relatório de discovery em `docs/business/relatorio_YYYY-MM-DD_v1.md`
 - Backlog completo no GitHub Projects (issues em todas as 6 dimensões)
 - Branch `dev` criado e configurado

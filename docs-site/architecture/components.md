@@ -27,7 +27,7 @@ Controla permissões e variáveis de ambiente para todos os agentes.
 
 ---
 
-## Memória persistente (`.claude/memory/`)
+## Memória persistente (`project/memory/`)
 
 Criada no `/kickoff` (Fase 0). Quatro arquivos:
 
@@ -63,7 +63,7 @@ Executado após cada escrita de arquivo.
 
 ## Skills enterprise (`.agents/skills/`)
 
-11 skills de domínio disponíveis para os agentes:
+21 skills de domínio disponíveis para os agentes:
 
 | Skill | Usado por |
 |---|---|
@@ -72,7 +72,7 @@ Executado após cada escrita de arquivo.
 | `data-engineering` | data-engineer, data-scientist |
 | `ml-engineering` | data-scientist, ml-engineer |
 | `ai-engineering` | ai-engineer |
-| `frontend-engineering` | frontend-engineer |
+| `frontend-engineering` | design-engineer |
 | `security-audit` | security-auditor |
 | `qa-testing` | qa |
 | `market-research` | researcher, marketing-strategist |

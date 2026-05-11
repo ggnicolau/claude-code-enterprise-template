@@ -49,7 +49,7 @@ graph TD
 | `infra-devops` | Cloud, CI/CD, containers, observabilidade |
 | `qa` | Testes, cobertura, qualidade |
 | `security-auditor` | Segurança, vulnerabilidades, OWASP |
-| `frontend-engineer` | Web, UI/UX, acessibilidade |
+| `design-engineer` | Web, UI/UX, acessibilidade |
 
 ---
 

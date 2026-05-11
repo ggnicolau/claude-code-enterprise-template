@@ -27,14 +27,14 @@ graph TB
         IDF["infra-devops"]
         QA["qa"]
         SEC["security-auditor"]
-        FE["frontend-engineer"]
+        FE["design-engineer"]
         RES["researcher"]
         MKT["marketing-strategist"]
     end
 
     subgraph INFRA["Infraestrutura"]
         GH["GitHub Projects\n(Kanban)"]
-        MEM["Memória persistente\n(.claude/memory/)"]
+        MEM["Memória persistente\n(project/memory/)"]
         HOOKS["Hooks automáticos\n(post_write.sh)"]
         DOCS["Gerador de docs\n(generate_docs.js)"]
     end
@@ -86,7 +86,7 @@ Três agentes controlam o fluxo de trabalho:
 | Componente | Função |
 |---|---|
 | GitHub Projects | Kanban — fonte de verdade do estado do projeto |
-| `.claude/memory/` | Memória persistente entre sessões (perfil, história, decisões) |
+| `project/memory/` | Memória persistente entre sessões (perfil, história, decisões) |
 | `post_write.sh` | Hook pós-escrita: formata Python, gera PDF/DOCX, valida nomes |
 | `generate_docs.js` | Converte `.md` em PDF/DOCX/PPTX para compartilhamento |
 

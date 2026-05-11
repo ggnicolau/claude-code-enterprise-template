@@ -135,7 +135,7 @@ O `project-manager` fecha issues prontas, seleciona as próximas e delega ao tec
 │   ├── commands/        # /kickoff, /advance, /review, /deploy, ...
 │   └── memory/          # memória persistente (criada no kickoff)
 ├── .agents/
-│   └── skills/          # 11 skills enterprise + caveman x3
+│   └── skills/          # 21 skills enterprise + caveman x3
 ├── docs/                # entregáveis do projeto
 ├── src/                 # código fonte
 ├── tests/               # testes automatizados
