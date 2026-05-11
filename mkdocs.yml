@@ -83,6 +83,7 @@ nav:
     - /fix-issue: commands/fix-issue.md
     - /clean: commands/clean.md
     - /update-memory: commands/update-memory.md
+    - /update-memory-full: commands/update-memory-full.md
   - Interações entre agentes: interactions.md
   - Convenções: conventions.md
   - Referência: reference.md

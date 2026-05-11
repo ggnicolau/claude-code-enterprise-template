@@ -18,7 +18,7 @@ Conduz o discovery completo e monta o backlog antes de qualquer execução.
 |---|---|---|
 | 0a | PM | Perguntas narrativas ao fundador |
 | 0b | PM | Síntese e confirmação |
-| 0c | PM | Persistência da memória em `.claude/memory/` |
+| 0c | PM | Persistência da memória em `project/memory/` |
 | 1 | researcher | Discovery — mercado, concorrência, benchmarks técnicos |
 | 2 | PM | Relatório executivo + apresentação |
 | 3 | PO | Backlog completo em 6 dimensões |
@@ -29,7 +29,7 @@ Conduz o discovery completo e monta o backlog antes de qualquer execução.
 
 ## Fase 0 — Memória persistente
 
-A Fase 0 cria 4 arquivos em `.claude/memory/`:
+A Fase 0 cria 4 arquivos em `project/memory/`:
 
 ```
 MEMORY.md          — índice de todos os arquivos
@@ -58,7 +58,7 @@ O PO cria issues cobrindo:
 ## Resultado
 
 Ao final do kickoff:
-- Memória em `.claude/memory/`
+- Memória em `project/memory/`
 - Relatório em `docs/business/relatorio_YYYY-MM-DD_v1.md`
 - Kanban com issues em todas as 6 dimensões
 - Primeiras issues delegadas para execução

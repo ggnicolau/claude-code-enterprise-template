@@ -156,7 +156,7 @@ Ele cria projetos filhos com:
 - commands como `/kickoff`, `/advance`, `/review-backlog`, `/review`, `/deploy`, `/fix-issue`, `/clean`, `/update-memory`;
 - GitHub Project/Kanban criado por workflow;
 - labels, issues iniciais, CI/CD e convenções de branch/commit;
-- memória persistente em `.claude/memory/`;
+- memória persistente em `project/memory/`;
 - hooks como `session_start.sh` e `post_write.sh`;
 - geração de PDF/DOCX/PPTX a partir de documentos markdown;
 - skills enterprise para produto, engenharia, dados, IA, QA, segurança, pesquisa e go-to-market.

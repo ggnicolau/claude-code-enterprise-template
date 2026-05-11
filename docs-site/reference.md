@@ -35,7 +35,7 @@ Consulta rápida para os principais elementos do sistema.
 | `infra-devops` | TL | Cloud e CI/CD |
 | `qa` | TL | Testes |
 | `security-auditor` | TL / infra-devops | Segurança |
-| `frontend-engineer` | TL | Web e UI |
+| `design-engineer` | TL | Web e UI |
 
 ---
 
@@ -43,10 +43,10 @@ Consulta rápida para os principais elementos do sistema.
 
 | Arquivo | Quem lê | Conteúdo |
 |---|---|---|
-| `.claude/memory/MEMORY.md` | PM, PO | Índice |
-| `.claude/memory/user_profile.md` | PM, PO | Perfil do fundador |
-| `.claude/memory/project_genesis.md` | PM, PO, TL | Gênese e ancoragens |
-| `.claude/memory/project_history.md` | PM, TL | Histórico de decisões |
+| `project/memory/MEMORY.md` | PM, PO | Índice |
+| `project/memory/user_profile.md` | PM, PO | Perfil do fundador |
+| `project/memory/project_genesis.md` | PM, PO, TL | Gênese e ancoragens |
+| `project/memory/project_history.md` | PM, TL | Histórico de decisões |
 
 ---
 

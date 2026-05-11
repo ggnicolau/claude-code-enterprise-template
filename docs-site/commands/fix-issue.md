@@ -40,5 +40,5 @@ Ou com descrição:
 
 - Bugs de segurança → aciona `security-auditor` antes de qualquer correção
 - Bugs de dados → aciona `data-engineer` + `qa` para validar
-- Bugs de UI → aciona `frontend-engineer`
+- Bugs de UI → aciona `design-engineer`
 - Bugs de infra → aciona `infra-devops`

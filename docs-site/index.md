@@ -15,7 +15,7 @@ O `claude-code-enterprise-template` é um repositório-modelo que transforma o C
 
 ## Principais características
 
-- **13 agentes especializados** — do project-manager ao security-auditor, do data-engineer ao frontend-engineer
+- **13 agentes especializados** — do project-manager ao security-auditor, do data-engineer ao design-engineer
 - **Kanban integrado ao GitHub Projects** — nenhum trabalho acontece sem issue no board
 - **Versionamento explícito de documentos** — `{nome}_YYYY-MM-DD_v{N}.md`, sem sobrescrita
 - **Dois regimes de trabalho** — Discovery (`/kickoff`) e Execução (`/advance`)

@@ -29,10 +29,10 @@ Você opera como **ferramenta de criação de repositórios**. O que faz sentido
 
 Ao rodar `/wizard`, um novo repositório filho é criado com:
 
-- 12 agentes especializados em `.claude/agents/`
+- 13 agentes especializados em `.claude/agents/` (project-manager, tech-lead, product-owner, data-engineer, data-scientist, ml-engineer, ai-engineer, infra-devops, qa, researcher, security-auditor, design-engineer, marketing-strategist)
 - Kanban no GitHub Projects pré-populado com épicos de negócio, produto, tech, lançamento e operações
-- Commands: `/kickoff`, `/advance`, `/review-backlog`, `/review`, `/deploy`, `/fix-issue`, `/clean`, `/update-memory`
-- Memória persistente (`.claude/memory/user_profile.md`, `project_genesis.md`, `MEMORY.md`) criada na Fase 0 do `/kickoff`
+- Commands: `/kickoff`, `/advance`, `/review-backlog`, `/review`, `/deploy`, `/fix-issue`, `/clean`, `/update-memory`, `/update-memory-full`
+- Memória persistente (`project/memory/user_profile.md`, `project_genesis.md`, `project_history.md`, `MEMORY.md`) criada na Fase 0 do `/kickoff`
 - Gerador `scripts/generate_docs.js` (PDF/DOCX/PPTX) + `package.json` + `styles/`
 - Convenção de versionamento `{nome}_YYYY-MM-DD_v{N}.md` — agentes nunca sobrescrevem versão anterior
 - CI/CD configurado (ruff, black, pytest)

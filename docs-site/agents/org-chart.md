@@ -29,7 +29,7 @@ graph TD
         IDF["infra-devops"]
         QA["qa"]
         SEC["security-auditor"]
-        FE["frontend-engineer"]
+        FE["design-engineer"]
     end
 
     USER -->|"/comando"| PM
