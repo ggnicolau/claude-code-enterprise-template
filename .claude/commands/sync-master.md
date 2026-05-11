@@ -37,7 +37,7 @@ Os templates irmãos são resolvidos relativamente ao diretório pai (`../`):
 **Arquivos que NÃO sincronizam (domain-specific):**
 - `CLAUDE.md`, `AGENTS.md`, `README.md` — linguagem de domínio
 - `scripts/templates/**` — agentes, commands e templates do filho
-- `docs-site/**` — conteúdo do MkDocs
+- `project/docs-site/**` — conteúdo do MkDocs
 - `mkdocs.yml` → `site_name`, `nav` (subseções), `theme.palette`
 - `.github/workflows/setup-kanban.yml` — épicos e labels são domain-specific
 - `.agents/skills/**` — skills podem variar por template

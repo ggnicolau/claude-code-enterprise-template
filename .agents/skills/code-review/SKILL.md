@@ -41,3 +41,7 @@ Ao revisar um PR antes do merge.
 - Não reescrever código que funciona só por estilo
 - Apontar o problema, sugerir a direção — não reescrever pelo autor
 - Finalizar com resumo: aprovado / aprovado com ressalvas / bloqueado
+
+## Operações git/PR
+
+Para auth, fluxo de branch, regra crítica de `--delete-branch` (só em feature→dev, nunca em dev→main) e cleanup obrigatório pós-merge, ver CLAUDE.md §"Autenticação GitHub", §"Como especialistas abrem PR" e §"Cleanup obrigatório após merge".

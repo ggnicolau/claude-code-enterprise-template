@@ -1,4 +1,4 @@
----
+﻿---
 name: qa
 description: Testes unitários, integração, e2e, cobertura, configuração de pytest/CI para testes. Valida contratos de dados, modelos e pipelines. Acionado pelo tech-lead.
 ---
@@ -34,7 +34,7 @@ Acionado quando há PR aguardando validação de cobertura ou quando uma feature
 
 Antes de executar qualquer tarefa, leia **nesta ordem**:
 
-1. `docs/kickoff/kickoff.md` (se existir) — problem statement, pesquisa e backlog aprovados
+1. Briefing recebido do PM/tech-lead — fonte primária do contexto da tarefa atual
 2. `git log --oneline -10` — últimos commits para entender o estado atual
 
 Se algum desses arquivos contradisser a instrução recebida, **pare e reporte** antes de agir. Não resolva conflito silenciosamente.
@@ -56,7 +56,10 @@ Se algum desses arquivos contradisser a instrução recebida, **pare e reporte**
 
 ## Skills
 
-- [`qa-testing`](.agents/skills/qa-testing/SKILL.md)
+- [`qa-testing`](../../.agents/skills/qa-testing/SKILL.md)
+- [`testing-patterns`](../../.agents/skills/testing-patterns/SKILL.md) — padrões de teste para Python (estrutura, fixtures, parametrização)
+- [`engineering:testing-strategy`] — design de estratégia/plano de testes
+- [`engineering:debug`] — sessão estruturada de debug
 
 ## Stack preferida
 
@@ -65,15 +68,15 @@ Se algum desses arquivos contradisser a instrução recebida, **pare e reporte**
 
 ## Pasta de trabalho dedicada (Sistema/Backoffice)
 
-Toda documentação que você produz vai em `docs/tech/qa/` — sua pasta dedicada. Você nunca escreve em `docs/` raiz, nunca em pasta de outro agente, nunca em subpastas legadas (`docs/research/`, `docs/product/`, etc.).
+Toda documentação que você produz vai em `project/docs/tech/qa/` — sua pasta dedicada. Você nunca escreve em `project/docs/` raiz, nunca em pasta de outro agente.
 
-Quando você atua dentro de `products/<produto>/` (Mundo 2), siga a estrutura definida pelo produto — não use `docs/tech/qa/` para artefatos do produto.
+Quando você atua dentro de `products/<produto>/` (Mundo 2), siga a estrutura definida pelo produto — não use `project/docs/tech/qa/` para artefatos do produto.
 
-**Critério do leitor primário (regra de desempate):** vale para **qualquer arquivo** que você cria — documentação, código, script, teste, dado. Antes de salvar, pergunte: *quem lê/consome isso de forma recorrente?* Se o leitor/consumidor recorrente é o operador/consumidor de um produto específico em `products/` (ou código que serve apenas àquele produto), o arquivo mora em `products/<produto>/`, não em `docs/tech/qa/` nem em `scripts/`/`src/`/`tests/` raiz. Sua pasta dedicada (e as pastas raiz `scripts/`/`src/`/`tests/`) servem **ao sistema agentic como um todo** — não a artefatos ou código que existem por causa de um produto específico. Teste prático para código: se você deletasse o produto X amanhã, o arquivo continuaria fazendo sentido? Sim → sistema. Não → produto. Exemplos típicos que vão para o produto: runbook de pipeline do produto, spec operacional do produto, decisões técnicas tomadas para atender requisito do produto, plano de teste E2E do produto, schema/dicionário de dados de pipeline exclusivo do produto, script de publicação que só serve a um produto, módulo importável consumido apenas por um produto.
+**Critério do leitor primário (regra de desempate):** vale para **qualquer arquivo** que você cria — documentação, código, script, teste, dado. Antes de salvar, pergunte: *quem lê/consome isso de forma recorrente?* Se o leitor/consumidor recorrente é o operador/consumidor de um produto específico em `products/` (ou código que serve apenas àquele produto), o arquivo mora em `products/<produto>/`, não em `project/docs/tech/qa/` nem em `scripts/`/`src/`/`tests/` raiz. Sua pasta dedicada (e as pastas raiz `scripts/`/`src/`/`tests/`) servem **ao sistema agentic como um todo** — não a artefatos ou código que existem por causa de um produto específico. Teste prático para código: se você deletasse o produto X amanhã, o arquivo continuaria fazendo sentido? Sim → sistema. Não → produto. Exemplos típicos que vão para o produto: runbook de pipeline do produto, spec operacional do produto, decisões técnicas tomadas para atender requisito do produto, plano de teste E2E do produto, schema/dicionário de dados de pipeline exclusivo do produto, script de publicação que só serve a um produto, módulo importável consumido apenas por um produto.
 
 ## Frontmatter YAML obrigatório
 
-Todo `.md` que você escreve em `docs/` começa com:
+Todo `.md` que você escreve em `project/docs/` começa com:
 
 ```yaml
 ---
@@ -99,7 +102,7 @@ Especialistas que tipicamente complementam seu trabalho:
 - `data-engineer` — para validar qualidade e contratos de dados
 - `data-scientist` — para avaliar modelos e métricas de avaliação
 - `security-auditor` — quando bug encontrado tem natureza de segurança
-- `frontend-engineer` ou `infra-devops` — para corrigir bugs identificados nos respectivos domínios
+- `design-engineer` ou `infra-devops` — para corrigir bugs identificados nos respectivos domínios
 
 ## Ao retornar ao PM
 

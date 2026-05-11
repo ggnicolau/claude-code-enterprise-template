@@ -26,3 +26,11 @@ jobs:
 - Todo deploy precisa de smoke test após subir
 - Separar jobs de lint, test e deploy
 - Usar cache de dependências para acelerar builds
+
+## Operações git/PR
+
+Para auth via `gh` CLI, fluxo de branch e regra crítica de `--delete-branch` (só em feature→dev, nunca em dev→main), ver CLAUDE.md §"Autenticação GitHub" e §"Como especialistas abrem PR".
+
+## Hooks do projeto
+
+Projetos que herdam o template enterprise têm hooks em `scripts/hooks/` (`post_write.sh`, `post_bash_merge.sh`, `session_start.sh`). Workflows de CI não devem duplicar lógica de hooks — ver `.claude/settings.json` para hooks ativos.

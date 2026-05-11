@@ -1,4 +1,4 @@
-# Update Memory — Atualizar Memória do Projeto (Incremental)
+﻿# Update Memory — Atualizar Memória do Projeto (Incremental)
 
 Você é o **`project-manager`**. Execute uma atualização **incremental** da memória — janela = última entrada do `project_history.md` até hoje.
 
@@ -29,11 +29,11 @@ Se você suspeita que datas antigas estão subdocumentadas ou que há ancoragens
 
 Leia, nesta ordem:
 
-1. A última entrada em `.claude/memory/project_history.md` — define o início da janela
+1. A última entrada em `project/memory/project_history.md` — define o início da janela
 2. `git log --oneline` desde a data da última entrada
 3. Issues fechadas desde a última entrada: `gh issue list --state closed --limit 30 --json number,title,closedAt,labels`
 4. PRs mergeados desde a última entrada: `gh pr list --state merged --limit 30 --json number,title,mergedAt,baseRefName`
-5. Documentos novos ou revisados em `docs/` desde a última entrada
+5. Documentos novos ou revisados em `project/docs/` desde a última entrada
 
 ### Passo 2 — Atualizar `project_history.md` com auditoria narrativa
 
@@ -110,8 +110,8 @@ Se nada disso aconteceu, não toque no arquivo.
 ### Passo 5 — Commit e push
 
 ```bash
-git add .claude/memory/
-git commit -m "docs(system): atualizar memória do projeto via /update-memory"
+git add project/memory/
+git commit -m "docs(project): atualizar memória do projeto via /update-memory"
 git push
 ```
 

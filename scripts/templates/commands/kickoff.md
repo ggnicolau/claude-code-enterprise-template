@@ -1,4 +1,4 @@
-# Kickoff — Iniciar Projeto
+﻿# Kickoff — Iniciar Projeto
 
 Você é o **`project-manager`**. Siga esta sequência obrigatória antes de qualquer execução.
 
@@ -42,7 +42,7 @@ query {
 
 O campo `number` retornado é o **project-number** (inteiro usado em comandos `gh project item-list`, `gh project item-add`, etc.). O campo `id` é o **project-id** global (usado em `gh project item-edit` via GraphQL).
 
-Com o output, extraia e salve em `.claude/memory/kanban_ids.md`:
+Com o output, extraia e salve em `project/memory/kanban_ids.md`:
 
 ```markdown
 ---
@@ -85,9 +85,9 @@ Para mover um card: `gh project item-edit --id <PVTI_...> --project-id <project-
 
 Commit:
 ```bash
-mkdir -p .claude/memory
-git add .claude/memory/kanban_ids.md
-git commit -m "docs(system): persist kanban IDs from /kickoff phase 0a"
+mkdir -p project/memory
+git add project/memory/kanban_ids.md
+git commit -m "docs(project): persist kanban IDs from /kickoff phase 0a"
 git push
 ```
 
@@ -113,9 +113,9 @@ Com as quatro respostas em mãos, devolva uma **síntese estruturada** ao fundad
 
 ### Fase 0d — Persistência em memória
 
-Após confirmação, grave automaticamente quatro arquivos em `.claude/memory/`:
+Após confirmação, grave automaticamente quatro arquivos em `project/memory/`:
 
-**`.claude/memory/user_profile.md`**
+**`project/memory/user_profile.md`**
 
 ```markdown
 ---
@@ -134,7 +134,7 @@ type: user
 [extrair da resposta 4 o que é sobre abordagem e modelo de negócio]
 ```
 
-**`.claude/memory/project_genesis.md`**
+**`project/memory/project_genesis.md`**
 
 ```markdown
 ---
@@ -153,7 +153,7 @@ type: project
 [da resposta 4 — o que deve ficar de fora do produto e da estratégia]
 ```
 
-**`.claude/memory/project_history.md`**
+**`project/memory/project_history.md`**
 
 ```markdown
 ---
@@ -167,7 +167,7 @@ type: project
 - [síntese das principais decisões tomadas nas fases 0–1]
 ```
 
-**`.claude/memory/MEMORY.md`**
+**`project/memory/MEMORY.md`**
 
 ```markdown
 # MEMORY.md
@@ -179,9 +179,9 @@ type: project
 
 Commit os quatro arquivos:
 ```bash
-mkdir -p .claude/memory
-git add .claude/memory/
-git commit -m "docs(system): add project genesis, user profile and history from /kickoff phase 0"
+mkdir -p project/memory
+git add project/memory/
+git commit -m "docs(project): add project genesis, user profile and history from /kickoff phase 0"
 git push
 ```
 
@@ -221,7 +221,7 @@ Passe o Problem Statement completo ao `researcher`. Aguarde o resultado antes de
 
 Com o discovery e a pesquisa em mãos, **você (PM) escreve** o relatório consolidado.
 
-Salve em `docs/business/project-manager/relatorio.md` (nome estável; revisões posteriores arquivam o anterior em `docs/business/project-manager/archive/relatorio_YYYY-MM-DD_v{N}.md`). O relatório deve conter:
+Salve em `project/docs/business/project-manager/relatorio.md` (nome estável; revisões posteriores arquivam o anterior em `project/docs/business/project-manager/archive/relatorio_YYYY-MM-DD_v{N}.md`). O relatório deve conter:
 - **Contexto e problema** — síntese do discovery com o usuário
 - **Pesquisa** — achados do `researcher`: mercado, concorrentes, benchmarks
 - **Decisões de produto** — o que construir, para quem, por quê agora
@@ -231,8 +231,8 @@ Salve em `docs/business/project-manager/relatorio.md` (nome estável; revisões 
 
 Após salvar:
 ```bash
-node scripts/generate_docs.js docs/business/project-manager/relatorio.md
-git add docs/business/
+node scripts/generate_docs.js project/docs/business/project-manager/relatorio.md
+git add project/docs/business/
 git commit -m "docs: add research and planning report"
 git push
 ```
@@ -241,7 +241,7 @@ git push
 
 ## Fase 4 — Apresentação (você, PM, produz)
 
-Com o relatório pronto, **você (PM) produz** a apresentação executiva em `docs/business/project-manager/apresentacao.md` (nome estável; revisões posteriores arquivam em `docs/business/project-manager/archive/apresentacao_YYYY-MM-DD_v{N}.md`).
+Com o relatório pronto, **você (PM) produz** a apresentação executiva em `project/docs/business/project-manager/apresentacao.md` (nome estável; revisões posteriores arquivam em `project/docs/business/project-manager/archive/apresentacao_YYYY-MM-DD_v{N}.md`).
 
 Use `anthropic-skills:pptx` para PowerPoint ou escreva em Markdown. A apresentação deve conter:
 - Problema e oportunidade
@@ -252,8 +252,8 @@ Use `anthropic-skills:pptx` para PowerPoint ou escreva em Markdown. A apresenta�
 
 Após salvar:
 ```bash
-node scripts/generate_docs.js docs/business/project-manager/apresentacao.md
-git add docs/business/
+node scripts/generate_docs.js project/docs/business/project-manager/apresentacao.md
+git add project/docs/business/
 git commit -m "docs: add executive presentation"
 git push
 ```
@@ -288,11 +288,11 @@ Status das issues ao criar:
 
 ### Passo 5.3 — Vinculação obrigatória ao GitHub Project
 
-Leia `project-number` e `owner` de `.claude/memory/kanban_ids.md` antes de rodar:
+Leia `project-number` e `owner` de `project/memory/kanban_ids.md` antes de rodar:
 
 ```bash
 OWNER=$(gh repo view --json owner -q .owner.login)
-PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' project/memory/kanban_ids.md)
 
 ISSUE_URL=$(gh issue create \
   --title "..." \
@@ -323,8 +323,8 @@ Aguarde aprovação explícita antes de prosseguir.
 Somente após aprovação, leia o Kanban e acione o especialista correto para a primeira issue em **Todo**:
 
 ```bash
-PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
-OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' .claude/memory/kanban_ids.md)
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' project/memory/kanban_ids.md)
+OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' project/memory/kanban_ids.md)
 gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json
 ```
 

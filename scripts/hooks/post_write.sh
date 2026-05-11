@@ -10,16 +10,25 @@ if [[ "$FILE" == *.py ]]; then
   black "$FILE" 2>/dev/null || true
 fi
 
-# A3: gerar PDF/DOCX/PPTX em arquivos .md dentro de docs/
-if [[ "$FILE" == *docs/*.md ]]; then
+# A3: gerar PDF/DOCX/PPTX em arquivos .md dentro de project/docs/
+if [[ "$FILE" == *project/docs/*.md ]]; then
   node "$CLAUDE_PROJECT_DIR/scripts/generate_docs.js" "$FILE" 2>/dev/null || true
 fi
 
-# A4: convenção de nome — docs/*.md fora de archive/ deve seguir *_YYYY-MM-DD_v*.md
-if [[ "$FILE" == *docs/*.md ]] && [[ "$FILE" != */archive/* ]]; then
+# A4: convenção de nome (CLAUDE.md §"Versionamento de Documentos")
+#   - Vigente (fora de archive/): nome estável SEM data SEM versão
+#   - Archive: {nome}_YYYY-MM-DD_v{N}.md
+if [[ "$FILE" == *project/docs/*.md ]]; then
   BASENAME=$(basename "$FILE")
-  if ! echo "$BASENAME" | grep -qE '^.+_[0-9]{4}-[0-9]{2}-[0-9]{2}_v[0-9]+\.md$'; then
-    echo "AVISO: '$BASENAME' não segue a convenção de nome obrigatória." >&2
-    echo "Renomeie para: {nome}_YYYY-MM-DD_v1.md (ex: $(echo "$BASENAME" | sed 's/\.md$//')_$(date +%Y-%m-%d)_v1.md)" >&2
+  if [[ "$FILE" == */archive/* ]]; then
+    if ! echo "$BASENAME" | grep -qE '^.+_[0-9]{4}-[0-9]{2}-[0-9]{2}_v[0-9]+\.md$'; then
+      echo "AVISO: '$BASENAME' em archive/ deve seguir {nome}_YYYY-MM-DD_v{N}.md" >&2
+    fi
+  else
+    if echo "$BASENAME" | grep -qE '_[0-9]{4}-[0-9]{2}-[0-9]{2}_v[0-9]+\.md$'; then
+      STABLE=$(echo "$BASENAME" | sed -E 's/_[0-9]{4}-[0-9]{2}-[0-9]{2}_v[0-9]+\.md$/.md/')
+      echo "AVISO: '$BASENAME' parece versionado mas está fora de archive/." >&2
+      echo "Vigente deve ter nome estável: '$STABLE'. Mova versões antigas para archive/." >&2
+    fi
   fi
 fi

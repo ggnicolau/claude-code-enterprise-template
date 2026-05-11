@@ -1,9 +1,9 @@
-# Skill: AI Engineering
+﻿# Skill: AI Engineering
 
-Padrão para sistemas LLM, agentes e RAG — usado pelo `ai-engineer`.
+Decisão arquitetural para sistemas LLM, agentes e RAG — usado pelo `ai-engineer`.
 
 ## Quando usar
-Ao projetar prompts, pipelines RAG, avaliações de LLM ou sistemas multi-agentes.
+Ao **decidir** arquitetura (qual padrão — prompt simples, chain, RAG, agente, multi-agente — e quais evals rodar antes de produção). Para **implementação concreta** (código Python com Anthropic SDK, prompt caching), use `llm-integration`.
 
 ## Decisão de arquitetura
 
@@ -32,6 +32,6 @@ Ao projetar prompts, pipelines RAG, avaliações de LLM ou sistemas multi-agente
 ## Boas práticas
 - Usar prompt caching da Anthropic em contextos longos e repetidos
 - Isolar experimentos de prompt em subagentes — evita contaminação do contexto principal
-- Versionar prompts junto com o código (`src/prompts/`)
-- Documentar evals e resultados em `docs/tech/`
+- Versionar prompts junto com o código (em `prompts/` no nível apropriado — ver CLAUDE.md §"Critério do leitor primário")
+- Documentar evals e resultados em pasta dedicada do agente (`project/docs/tech/ai-engineer/`)
 - Monitorar drift de qualidade em produção com amostragem periódica

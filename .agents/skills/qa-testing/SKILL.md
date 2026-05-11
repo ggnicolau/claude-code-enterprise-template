@@ -1,9 +1,9 @@
 # Skill: QA Testing
 
-Padrão para testes, cobertura e qualidade — usado pelo `qa`.
+Processo e decisão de qualidade — usado pelo `qa`.
 
 ## Quando usar
-Ao validar cobertura de testes em um PR ou ao projetar estratégia de testes para uma feature.
+Ao **decidir** estratégia de testes (pirâmide, critério de bloqueio de merge) e **validar cobertura** em PR. Para **escrever testes** seguindo padrões Python (fixtures, parametrização, exemplos), use `testing-patterns`.
 
 ## Pirâmide de testes
 
@@ -34,3 +34,5 @@ Ao validar cobertura de testes em um PR ou ao projetar estratégia de testes par
 - Nomes de teste descritivos: `test_<quando>_<resultado_esperado>`
 - Rodar `pytest --cov` antes de abrir PR
 - Dados de teste em `tests/fixtures/` — nunca dados reais de produção
+
+> **Onde mora**: depende do contexto. Testes específicos de um produto vão em `products/<produto>/tests/`. Testes de lib universal vão em `tests/` raiz (Mundo 1). Ver CLAUDE.md §"Critério do leitor primário".

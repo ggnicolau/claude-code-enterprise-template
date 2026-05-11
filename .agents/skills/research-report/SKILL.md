@@ -18,3 +18,10 @@ Ao pesquisar ferramentas, abordagens, papers ou benchmarks.
 - Preferir exemplos concretos a explicações abstratas
 - Indicar limitações da abordagem recomendada
 - Concluir sempre com uma ação clara
+
+## Onde salvar e versionar
+
+- **Mundo 2 / projeto**: `project/docs/business/researcher/` (pasta dedicada)
+- **Mundo 2 / produto**: `products/<produto>/` na estrutura definida pelo produto
+
+Versionamento de docs (nome estável + archive `{nome}_YYYY-MM-DD_v{N}.md`) é obrigatório — ver CLAUDE.md §"Versionamento de Documentos".

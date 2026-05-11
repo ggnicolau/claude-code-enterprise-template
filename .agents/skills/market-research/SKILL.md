@@ -24,7 +24,17 @@ Ao mapear o mercado, analisar competidores ou levantar dados para embasar decis�
 | Posicionamento | Proposta de valor, mensagem principal, diferencial |
 
 ## Boas práticas
+
 - Citar fonte para cada dado relevante — sem dados sem origem
 - Distinguir dado verificável de estimativa/opinião
-- Salvar pesquisa em `docs/research/` com data no nome
 - Finalizar com implicações para o produto — pesquisa sem ação é custo
+
+## Onde salvar
+
+Depende do agente que escreve e do contexto:
+
+- **Researcher (Mundo 2 / projeto)**: `project/docs/business/researcher/`
+- **Marketing-strategist (Mundo 2 / projeto)**: `project/docs/business/marketing-strategist/`
+- **Pesquisa específica de produto (Mundo 2 / produto)**: `products/<produto>/` na estrutura definida pelo produto
+
+Versionamento de docs (nome estável + archive) é obrigatório — ver CLAUDE.md §"Versionamento de Documentos" e §"Critério do leitor primário" para roteamento.

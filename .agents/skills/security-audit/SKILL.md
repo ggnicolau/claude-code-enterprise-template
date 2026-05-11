@@ -3,7 +3,7 @@
 Padrão para identificação e classificação de vulnerabilidades — usado pelo `security-auditor`.
 
 ## Quando usar
-Ao revisar PRs com infra, autenticação, dados sensíveis ou superfície de API.
+Ao **auditar profundamente** PRs com infra, autenticação, dados sensíveis ou superfície de API. Para **checklist rápido pré-PR** (5 minutos, antes de mergear PRs pequenos), use `security-review`.
 
 ## Severidade
 
@@ -28,3 +28,7 @@ Ao revisar PRs com infra, autenticação, dados sensíveis ou superfície de API
 - Não sugerir soluções de segurança que sacrificam funcionalidade sem discutir o trade-off
 - Secrets pertencem ao `.env` ou a um secret manager — nunca ao código
 - Revisar `.gitignore` para garantir que `.env` está excluído
+
+## Operações git/PR
+
+Para auth via `gh` CLI e fluxo de PR (incluindo regra crítica de `--delete-branch`), ver CLAUDE.md §"Autenticação GitHub" e §"Como especialistas abrem PR".

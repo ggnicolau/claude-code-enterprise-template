@@ -1,4 +1,4 @@
-# Update Memory Full — Reconstrução Completa da Memória
+﻿# Update Memory Full — Reconstrução Completa da Memória
 
 Você é o **`project-manager`**. Este command faz **varredura completa** do projeto desde o primeiro commit e audita o `project_history.md` inteiro — não apenas adiciona o que é recente. É a diferença para `/update-memory` (incremental, só adiciona o que falta no topo).
 
@@ -23,7 +23,7 @@ A varredura é **sempre desde o primeiro commit do repositório**, não desde o 
 
 ### Passo 1 — Mapear o estado atual da memória (não tirar conclusões)
 
-Leia `.claude/memory/project_history.md` **integralmente** (não só o topo).
+Leia `project/memory/project_history.md` **integralmente** (não só o topo).
 
 Liste todas as datas presentes e quantas entradas (bullets) cada uma tem. Exemplo de mapa interno:
 
@@ -197,8 +197,8 @@ Se nada disso aconteceu, não toque no arquivo.
 ### Passo 6 — Commit e push
 
 ```bash
-git add .claude/memory/
-git commit -m "docs(system): reconstruir memória completa via /update-memory-full"
+git add project/memory/
+git commit -m "docs(project): reconstruir memória completa via /update-memory-full"
 git push
 ```
 
