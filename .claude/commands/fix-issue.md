@@ -6,6 +6,8 @@ Não refatore além do escopo do bug. Adicione teste de regressão se aplicável
 
 ## Processo obrigatório
 
+0. **Se a issue ainda não existe**, crie-a e **imediatamente** adicione ao projeto Kanban — issue criada sem card não aparece no board e vira dívida de processo.
+
 1. **Leia a issue no Kanban** — entenda o escopo antes de agir
 2. **Crie um branch** com nome descritivo: `fix/<descricao-curta>`
 3. **Implemente a correção mínima** — sem refatorações fora do escopo

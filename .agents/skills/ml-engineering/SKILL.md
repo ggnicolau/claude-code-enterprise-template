@@ -1,9 +1,9 @@
 # Skill: ML Engineering
 
-Padrão para treinamento, avaliação e deploy de modelos — usado pelo `ml-engineer`.
+Ciclo completo de modelos: treino → avaliação → produção → monitoramento — usado pelo `ml-engineer`.
 
 ## Quando usar
-Ao projetar experimentos, treinar modelos ou preparar modelos para produção.
+Ao **produtizar um modelo** (preparar para serving, monitoramento, fallback). Para **rigor experimental** (seed, splits sem vazamento, comparação de runs, registro MLflow), use `ml-experiment`.
 
 ## Ciclo de experimento
 
@@ -28,3 +28,5 @@ Ao projetar experimentos, treinar modelos ou preparar modelos para produção.
 - Documentar suposições sobre os dados de entrada
 - Registrar experimentos que *não* funcionaram — evita retrabalho
 - Salvar artefatos em `models/` com versionamento explícito
+
+> **Onde mora**: depende do contexto. Modelo específico de um produto vai em `products/<produto>/models/`. Modelo compartilhado entre produtos vai em `models/` raiz (Mundo 1). Ver CLAUDE.md §"Critério do leitor primário".

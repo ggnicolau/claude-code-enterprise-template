@@ -1,4 +1,4 @@
-# Skill: Go-to-Market
+﻿# Skill: Go-to-Market
 
 Padrão para estratégia de lançamento e posicionamento — usado pelo `marketing-strategist`.
 
@@ -29,4 +29,5 @@ Ao planejar o lançamento de um produto, feature ou campanha.
 - Mensagem testada com o ICP antes de escalar
 - Canal validado antes de investimento pesado
 - Plano de lançamento com rollback — o que fazer se não converter
-- Salvar estratégia em `docs/business/` com versionamento
+- Salvar estratégia em pasta dedicada do agente (`project/docs/business/marketing-strategist/`) ou em `products/<produto>/` se a estratégia é específica de um produto
+- Versionamento de docs (nome estável + archive) é obrigatório — ver CLAUDE.md §"Versionamento de Documentos"
