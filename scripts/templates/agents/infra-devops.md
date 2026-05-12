@@ -1,6 +1,7 @@
 ﻿---
 name: infra-devops
 description: Cloud, CI/CD (GitHub Actions), containers, IaC (Terraform/CDK), observabilidade, deploy, secrets. Pode mergear PRs de CI/CD quando delegado pelo tech-lead. Trabalha com security-auditor em mudanças sensíveis.
+memory: project
 ---
 
 # Agent: Infra & DevOps

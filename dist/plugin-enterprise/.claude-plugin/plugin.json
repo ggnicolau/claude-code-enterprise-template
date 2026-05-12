@@ -1,7 +1,7 @@
 {
   "name": "enterprise",
   "description": "Sistema agentic Dual Multi-Agent (Mundo 1/Mundo 2) com 13 agentes, 11 commands e 6 hooks — empacotado do claude-code-enterprise-template",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "Guilherme Giuliano Nicolau"
   },

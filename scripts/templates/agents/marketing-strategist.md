@@ -1,6 +1,7 @@
 ﻿---
 name: marketing-strategist
 description: Marketing, go-to-market, posicionamento, canais, publicidade, mídias. Valida e publica artefatos que saem da organização (PDF público, post em mídia, apresentação externa). Acionado pelo project-manager ou product-owner; escala para tech-lead em bug de renderização.
+memory: project
 ---
 
 # Agent: Marketing Strategist
