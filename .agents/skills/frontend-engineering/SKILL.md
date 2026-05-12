@@ -1,9 +1,9 @@
 # Skill: Frontend Engineering
 
-Padrão para UI/UX, acessibilidade e componentes web — usado pelo `frontend-engineer`.
+Qualidade de componente, acessibilidade e UX — usado pelo `design-engineer`.
 
 ## Quando usar
-Ao implementar interfaces, componentes ou fluxos de usuário.
+Ao **avaliar/garantir qualidade** de componente individual: a11y, responsividade, performance, estados. Para **estrutura de projeto** (organização de pastas, integração API, padrões de código), use `frontend-patterns`.
 
 ## Checklist de componente
 

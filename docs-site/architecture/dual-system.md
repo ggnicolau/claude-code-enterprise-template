@@ -151,7 +151,7 @@ graph TD
     TL --> IDF["infra-devops"]
     TL --> QA["qa"]
     TL --> SEC["security-auditor"]
-    TL --> FE["frontend-engineer"]
+    TL --> FE["design-engineer"]
     TL --> RES
 ```
 
@@ -333,7 +333,7 @@ Isso significa que as regras de comportamento são consistentes nos dois planos.
 !!! tip "O ciclo de feedback automático"
     Quando um pipeline de produção falha, o agente não apenas registra o erro em um log — ele abre uma issue no Kanban com o estágio onde falhou, o motivo do bloqueio, e o contexto necessário para reproduzir. O plano de construção recebe o problema já especificado, com critério de aceite claro derivado da falha real. O feedback de produção para desenvolvimento é automático, rastreável, e não depende de nenhuma ação manual do usuário.
 
-A **memória persistente** em `.claude/memory/` completa o quadro. Ela armazena o perfil do fundador, a gênese do projeto, as âncoras estratégicas, o histórico de decisões e entregáveis aprovados. Esses arquivos são lidos pelo `project-manager` e pelo `tech-lead` antes de qualquer ação — garantindo que o contexto acumulado do projeto informa tanto uma decisão de produto no plano de construção quanto uma decisão editorial no plano de execução.
+A **memória persistente** em `project/memory/` completa o quadro. Ela armazena o perfil do fundador, a gênese do projeto, as âncoras estratégicas, o histórico de decisões e entregáveis aprovados. Esses arquivos são lidos pelo `project-manager` e pelo `tech-lead` antes de qualquer ação — garantindo que o contexto acumulado do projeto informa tanto uma decisão de produto no plano de construção quanto uma decisão editorial no plano de execução.
 
 ---
 

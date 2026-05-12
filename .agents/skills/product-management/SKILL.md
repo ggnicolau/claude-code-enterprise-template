@@ -1,9 +1,9 @@
 # Skill: Product Management
 
-Padrão para gestão de backlog, priorização e refinamento — usado pelo `product-owner`.
+Gestão estratégica de produto: discovery, roadmap, priorização — usado pelo `product-owner`.
 
 ## Quando usar
-Ao criar, refinar ou priorizar issues no kanban; ao conduzir discovery de produto.
+Ao **conduzir discovery**, **priorizar com framework** (MoSCoW, RICE), **refinar épicos** e **manter roadmap**. Para **operação tática do Kanban** (criar/mover/fechar issues no dia a dia, labels específicas, fluxo de status), use `backlog-management`.
 
 ## Anatomia de uma issue bem definida
 

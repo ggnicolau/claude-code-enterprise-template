@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # A1: Exibir kanban — apenas em projetos filhos (não no template)
 if [ ! -f "$CLAUDE_PROJECT_DIR/scripts/new_repo.py" ]; then
   GH_TOKEN_VAL=$(grep GH_TOKEN "$CLAUDE_PROJECT_DIR/.env" 2>/dev/null | cut -d= -f2)
@@ -9,7 +9,7 @@ if [ ! -f "$CLAUDE_PROJECT_DIR/scripts/new_repo.py" ]; then
     REPO=$(gh repo view --json name -q .name 2>/dev/null) || true
     if [ -n "$OWNER" ]; then
       # Lê project-number do kanban_ids.md se existir (evita gh project list a cada sessão)
-      KANBAN_IDS="$CLAUDE_PROJECT_DIR/.claude/memory/kanban_ids.md"
+      KANBAN_IDS="$CLAUDE_PROJECT_DIR/project/memory/kanban_ids.md"
       PROJECT_NUMBER=""
       if [ -f "$KANBAN_IDS" ]; then
         PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' "$KANBAN_IDS" 2>/dev/null) || true
@@ -22,7 +22,7 @@ if [ ! -f "$CLAUDE_PROJECT_DIR/scripts/new_repo.py" ]; then
       if [ -n "$PROJECT_NUMBER" ]; then
         BOARD_TMP=$(mktemp)
         CLOSED_TMP=$(mktemp)
-        gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 100 > "$BOARD_TMP" 2>/dev/null || true
+        gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 500 > "$BOARD_TMP" 2>/dev/null || true
         gh issue list --repo "$OWNER/$REPO" --state closed --json number,closedAt,title --jq '[.[] | {number: .number, closedAt: .closedAt, title: .title}]' > "$CLOSED_TMP" 2>/dev/null || true
         PYTHONIOENCODING=utf-8 python3 - "$BOARD_TMP" "$CLOSED_TMP" << 'PYEOF'
 import json, sys

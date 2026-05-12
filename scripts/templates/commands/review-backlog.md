@@ -1,4 +1,4 @@
-# Review Backlog — Revisão Proativa do Kanban
+﻿# Review Backlog — Revisão Proativa do Kanban
 
 Você é o **`project-manager`**. Este command faz uma varredura completa do estado do projeto: fecha o que está pronto, identifica lacunas, refina o backlog e reordena prioridades. Acione quando o projeto evoluiu e o Kanban pode estar desatualizado.
 
@@ -76,11 +76,11 @@ Aguarde feedback antes de encerrar. Se o usuário quiser avançar imediatamente,
 
 ## Regra de persistência
 
-Todo documento produzido neste command (notas de revisão, sumários de backlog) deve ser salvo em `docs/` com commit e push antes de encerrar:
+Todo documento produzido neste command (notas de revisão, sumários de backlog) deve ser salvo em `project/docs/` com commit e push antes de encerrar:
 
 ```
-git add docs/
-git commit -m "docs: update backlog review notes"
+git add project/docs/
+git commit -m "docs(project): update backlog review notes"
 git push
 ```
 

@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -44,20 +44,21 @@ Exiba a mensagem abaixo — inclua os ``` literalmente na saída (eles criam o b
 
 🛠️ Commands disponíveis:
 ```
-  /kickoff          → iniciar o projeto (discovery, pesquisa, relatório, apresentação, backlog)
-  /advance          → avançar no Kanban (fecha prontos, paraleliza, delega)
-  /review-backlog   → revisar e refinar o backlog
-  /review           → code review de um PR
-  /deploy           → deploy
-  /fix-issue        → corrigir um bug
-  /update-memory    → atualizar a memória do projeto (incremental)
-  /update-memory-full → reconstruir memória completa quando histórico está defasado
-  /clean            → commitar e fazer push de tudo pendente
+  /kickoff           → iniciar o projeto (discovery, pesquisa, relatório, apresentação, backlog)
+  /kickoff-product   → criar novo produto em products/<nome>/ com MEMORY.md + plan inicial
+  /advance           → avançar no Kanban (fecha prontos, paraleliza, delega)
+  /review-backlog    → revisar e refinar o backlog
+  /review            → code review de um PR
+  /deploy            → deploy
+  /fix-issue         → corrigir um bug
+  /update-memory     → atualizar memória do projeto (incremental — Mundo 2 / projeto)
+  /update-memory-full → reconstruir memória completa quando histórico está defasado (Mundo 2 / projeto)
+  /update-memory-product → atualizar plan de produto em batch (Mundo 2 / produto)
 ```
 
 👥 Equipe: project-manager · tech-lead · product-owner · researcher
          data-engineer · data-scientist · ml-engineer · ai-engineer · infra-devops
-         qa · security-auditor · frontend-engineer · marketing-strategist
+         qa · security-auditor · design-engineer · marketing-strategist
 
 Como posso ajudar?
 
@@ -100,6 +101,7 @@ A hierarquia conceitual no organograma (PM → TL → especialistas) descreve **
 
 ### Fluxo padrão para tarefa técnica
 
+0. **Verificação de produto (Mundo 2 / produto):** se a tarefa vai mexer em código/docs de um produto pela primeira vez (não há pasta `products/<produto>/` ou ela existe mas foi criada manualmente sem `MEMORY.md` + plan inicial), **pare e sugira ao usuário rodar `/kickoff-product <nome>` antes** de prosseguir. Aguarde confirmação explícita do usuário antes de continuar — não rode `/kickoff-product` autonomamente, e não inicie a tarefa técnica em paralelo. Justificativa: criar produto na marra leva a `products/<produto>/` sem índice canônico, plan stub ausente, estrutura inconsistente — débito que vira catch-up retroativo depois.
 1. PM spawna `tech-lead` com a tarefa técnica recebida do usuário
 2. `tech-lead` analisa, decide arquitetura, retorna **plano de execução** ao PM
 3. PM lê o plano e spawna cada especialista listado, com o briefing definido pelo `tech-lead`
@@ -133,6 +135,8 @@ Subagentes spawnados via `Task` compartilham o mesmo working tree do repo por pa
 
 A regra captura >95% dos casos onde worktree importa sem pagar overhead nos casos onde não importa.
 
+**Nota operacional:** worktrees não copiam arquivos não rastreados. Subagentes que precisam de `GH_TOKEN` (ex: `gh pr create`) devem carregar do `.env` da raiz do repo principal usando `git rev-parse --git-common-dir` (que resolve ao `.git` do repo principal mesmo dentro de worktree): `export GH_TOKEN=$(grep GH_TOKEN "$(git rev-parse --git-common-dir)/../.env" | cut -d= -f2)`. A mesma fórmula funciona em sessão principal (sem worktree) — adotar como padrão único.
+
 ---
 
 ## Entregas que Cruzam Domínios — Colaboração Conjunta
@@ -155,10 +159,42 @@ O PR chega mais bem especificado — a colaboração acontece antes de implement
 ---
 
 ## Stack
-- Python 3.11+
+- Python 3.14 (interpretador base)
 - Tests: pytest
 - Formatting: ruff, black
-- Env management: uv ou conda
+- Env management: **uv** (não pip diretamente)
+
+### Regra obrigatória — sempre usar o `.venv` do projeto
+
+**Para qualquer comando Python neste projeto** (pipeline, testes, scripts ad-hoc, REPL), use o Python do `.venv` da raiz, **não o Python global**:
+
+- **Windows:** `.venv/Scripts/python.exe`
+- **Linux/Mac:** `.venv/bin/python`
+
+Exemplos:
+```bash
+.venv/Scripts/python.exe -m pytest products/boletim/tests/   # testes
+.venv/Scripts/python.exe products/boletim/scripts/criar_bronze.py   # pipeline
+.venv/Scripts/python.exe -c "import boletim; print(boletim.__file__)"   # ad-hoc
+```
+
+**Por que é obrigatório:** o `.venv` tem `boletim` instalado em modo editable + todas as deps do `pyproject.toml` (pandas, seaborn, pytest, etc). Rodar `python` ou `python3` global vai falhar com `ModuleNotFoundError: No module named 'boletim'` (ou `seaborn`, `pandas`, etc).
+
+Se `.venv` não existir, **parar e reportar** — não rodar com Python global. Reconstruir com `uv sync`.
+
+### Gerenciamento de dependências — usar `uv`, não `pip`
+
+O `.venv` deste projeto é gerenciado pelo `uv` (não tem `pip` instalado dentro dele). Comandos:
+
+```bash
+uv sync                       # sincroniza .venv com pyproject.toml + uv.lock
+uv add <pacote>               # adiciona nova dependência
+uv add --dev <pacote>         # adiciona dependência de dev
+uv remove <pacote>            # remove dependência
+uv lock --upgrade             # atualiza uv.lock
+```
+
+**Não rodar** `pip install ...` — vai falhar com "No module named pip" porque o venv uv-managed não inclui pip.
 
 ## Conventions
 - Type hints em todas as funções públicas
@@ -182,46 +218,77 @@ O PR chega mais bem especificado — a colaboração acontece antes de implement
 
 Este projeto adota o padrão **Dual Multi-Agent System** — dois mundos claramente separados, ambos operados pelos mesmos 13 agentes, com regras diferentes em cada um.
 
-### Mundo 1 — Sistema agentic (raiz do repo)
+A dualidade é entre **sistema imutável (template)** vs **mutável (este projeto)**. Mundo 2 (mutável) tem 2 níveis internos — projeto e produto — porque o que cresce neste projeto inteiro é diferente do que cresce em cada produto.
 
-Onde o **framework agentic** vive — não onde os produtos vivem. Estrutura **rígida e padronizada** — todo projeto herda do enterprise-template e mantém a estrutura. Os agentes atuam neste mundo quando trabalham em **infraestrutura do agentic system, configuração do framework, CI/CD, documentação institucional, hooks, geradores universais**.
+### Mundo 1 — Sistema agentic imutável (template universal)
+
+Onde o **framework agentic** vive — não onde os produtos nem o projeto deste repo vivem. Estrutura **rígida e padronizada** — todo projeto herda do enterprise-template e mantém esta estrutura. Os agentes atuam neste mundo quando trabalham em **infraestrutura do agentic system, configuração do framework, CI/CD, hooks, geradores universais**.
 
 ```
-.claude/                ← agentes, commands, hooks, memória, settings do framework
-CLAUDE.md, AGENTS.md    ← regras do sistema agentic
-README.md, pyproject.toml, uv.lock, .gitignore  ← infra do projeto
-docs/                   ← documentação por agente do sistema (.md, .pdf, .pptx, .docx)
-data/                   ← dados brutos compartilháveis entre produtos (raw/bronze/silver/gold só se compartilhados)
+.claude/                ← agentes, commands, settings do framework
+CLAUDE.md, AGENTS.md    ← regras do sistema agentic (estrutura)
+README.md, pyproject.toml, uv.lock  ← infra do projeto
 scripts/                ← automações do framework (CI, generate_docs, hooks, cloud_setup)
-src/                    ← código importável do framework (NÃO de produto)
-tests/                  ← testes do framework (NÃO de produto)
+src/                    ← código importável do framework (NÃO de produto, NÃO deste projeto)
+tests/                  ← testes do framework (NÃO de produto, NÃO deste projeto)
+mkdocs.yml              ← config do gerador estático
 ```
 
 **Regra de proteção dos arquivos de sistema:**
 
-Arquivos de Mundo 1 (`.claude/`, `CLAUDE.md`, `AGENTS.md`, templates, commands, hooks, agentes) são **universais** — servem a qualquer projeto que herda do enterprise-template. Por isso:
+Arquivos de Mundo 1 (`.claude/agents/`, `.claude/commands/`, estrutura de `CLAUDE.md`/`AGENTS.md`, hooks/generators em `scripts/`, libs em `src/`, testes em `tests/`, `pyproject.toml`, `mkdocs.yml`) são **universais** — servem a qualquer projeto que herda do enterprise-template. Por isso:
 
 1. **Nunca modificar arquivos de sistema sem requisição explícita do usuário.** Mesmo que uma melhoria pareça óbvia, não altere. Leia, use como contexto, mas não edite sem pedido direto.
-2. **Nunca referenciar o projeto atual em arquivos de sistema.** Nomes de produto (`Cadeira Vazia`, `boletim`, `presenca-congresso`), caminhos específicos (`products/boletim/`), tecnologias específicas do produto — nada disso entra em arquivos universais. Esses arquivos precisam fazer sentido em qualquer projeto.
+2. **Nunca referenciar o projeto atual em arquivos de sistema.** Nomes de produto (`Cadeira Vazia`, `boletim`, `{repo_name}`), caminhos específicos (`products/boletim/`), tecnologias específicas do produto — nada disso entra em arquivos universais. Esses arquivos precisam fazer sentido em qualquer projeto.
 3. **Exemplos em arquivos de sistema são hipotéticos.** Se precisar ilustrar uma regra com exemplo concreto, use nomes fictícios genéricos (`products/<produto>/`, `meu-projeto`, `pipeline_x.py`). Nunca use dados reais do projeto atual como exemplo — mesmo que o exemplo tenha vindo de uma situação real, ele deve parecer hipotético para quem ler no futuro.
 
 **Atenção — definição estrita de "sistema":**
 - `scripts/`, `src/`, `tests/` na raiz **NÃO são genéricos**. Só recebem código que serve **ao agentic system** (CI/CD, hooks, geradores universais, libs reutilizáveis por **múltiplos produtos**).
 - Código que existe **por causa de um produto específico** (ainda que apenas um produto exista hoje) **não vai aqui** — vai em `products/<produto>/`.
-- Critério prático: se você deletar este projeto-produto, o arquivo continua fazendo sentido? Se sim, é sistema. Se não, é produto.
+- Documentação/memória/MkDocs **deste projeto** (não universal) **não vai aqui** — vai em `project/` (Mundo 2 / nível projeto).
+- Critério prático: se você deletar este projeto inteiro (incluindo todos os produtos), o arquivo continua fazendo sentido? Se sim, é sistema. Se não, é projeto ou produto.
 
-**Cada raiz tem propósito claro:**
-- `docs/` → **só documentos** do sistema (.md, .pdf, .pptx, .docx) e assets de geração. Pasta-por-agente. Nunca código `.py` produtizado.
-- `src/` → **só código importável do framework** (módulos universais, libs reutilizáveis por qualquer produto).
+**Cada raiz tem propósito claro (Mundo 1 — universal):**
+- `src/` → **só código importável do framework** (módulos universais, libs reutilizáveis por qualquer projeto).
 - `scripts/` → **só automações do framework** (CI, geradores universais como `generate_docs.js`, hooks, cloud_setup).
-- `data/` → **só dados compartilháveis entre produtos** (raw da API pública, etc.). Dados específicos de produto vão em `products/<produto>/data/`.
 - `tests/` → **só testes do framework**. Testes de produto vão em `products/<produto>/tests/`.
+- `data/` → **raríssimo em Mundo 1** — só faz sentido se for dataset universal (fixture, exemplo) reutilizável por **qualquer projeto** que herde o template. Dados deste projeto compartilhados entre produtos vão em `project/data/` (Mundo 2 / projeto). Dados específicos de um produto vão em `products/<produto>/data/`.
 
 Commits que mexem em qualquer arquivo deste mundo usam escopo `(system)`: `chore(system): ...`, `docs(system): ...`, `feat(system): ...`.
 
-### Mundo 2 — Produtos (`products/<produto>/`)
+**Exceção tolerada — skills de produto em `.claude/commands/`:**
 
-Onde os produtos vivem. **Estrutura livre por produto** — cada produto define o próprio formato. Os agentes atuam neste mundo quando trabalham nos artefatos **e no código** de cada produto.
+Pelo critério do leitor primário, uma skill que serve a **um único produto** (ex: `/run-<produto>-diaria`) pertenceria a `products/<produto>/`. Mas o Claude Code só lê commands de `.claude/commands/`: skills movidas para fora deixam de ser invocáveis via `/comando`.
+
+Por restrição técnica da plataforma, **skills específicas de produto ficam em `.claude/commands/`** mesmo violando o critério do leitor primário. Estas skills:
+
+- Podem (e devem) referenciar paths concretos do produto (`products/<produto>/`, código, prompts) — não precisam ser hipotéticas
+- São rastreáveis pelo nome (`run-<produto>-...`, `<produto>-...`) — convenção, não regra
+- Continuam tendo escopo `(system)` no commit por estarem em `.claude/`, mas é decisão pragmática (poderia ser `(<produto>)` se a regra evoluir)
+
+A maioria dos commands deve ser **universal** (servir qualquer projeto). Exceções são raras e justificáveis caso a caso.
+
+### Mundo 2 — Mutável (cresce com o trabalho)
+
+Tudo que **cresce conforme você trabalha**. Subdivide em 2 níveis com responsáveis e cadências próprios:
+
+#### Mundo 2 / Nível projeto — `project/`
+
+Onde vive o que é deste **projeto inteiro** (não específico de um produto). Memória, documentação institucional, site MkDocs. Estrutura herdada da convenção do template (pasta-por-agente em `project/docs/`, frontmatter YAML), mas o **conteúdo** é específico deste projeto.
+
+```
+project/
+├── memory/              ← memória persistente do projeto (gênese, history, perfil)
+├── docs/                ← documentação por agente (relatórios, runbooks, pesquisas)
+├── docs-site/           ← MkDocs (documentação publicada)
+└── data/                ← dados compartilhados entre produtos do projeto (raw da API pública, etc.)
+```
+
+Commits aqui usam escopo `(project)`: `docs(project): atualizar project_history`, `chore(project): adicionar runbook do tech-lead`.
+
+#### Mundo 2 / Nível produto — `products/<produto>/`
+
+Onde vivem os produtos. **Estrutura livre por produto** — cada produto define o próprio formato. Os agentes atuam neste nível quando trabalham nos artefatos **e no código** de cada produto.
 
 ```
 products/
@@ -247,53 +314,68 @@ Dentro de `products/<produto>/` há tipicamente 2 subníveis:
 
 **Regra de promoção:** começa no nível **mais específico** (pasta da rotina). Quando aparece um **segundo consumidor** (outra rotina precisa do mesmo código), promove para o nível superior (raiz do produto). Não anteciparemos compartilhamento por especulação.
 
-**Importante:** dentro de `products/<produto>/` **não há pasta-por-agente** (essa lógica é só de Mundo 1). A estrutura é definida pelo produto e segue a lógica do que aquele produto produz.
+**Importante:** dentro de `products/<produto>/` **não há pasta-por-agente** (essa lógica é só de Mundo 2 / nível projeto, em `project/docs/`). A estrutura é definida pelo produto e segue a lógica do que aquele produto produz.
 
-Commits que mexem aqui usam escopo do produto ou nenhum escopo: `feat: ...`, `docs: ...`, `feat(<produto>): ...`.
+Commits que mexem em produto usam escopo do produto ou nenhum escopo: `feat: ...`, `docs: ...`, `feat(<produto>): ...`.
 
 ### Regra de fronteira
 
-Os agentes alternam entre os dois mundos conforme a tarefa:
+Os agentes alternam entre os 3 contextos (Mundo 1 / Mundo 2 nível projeto / Mundo 2 nível produto) conforme a tarefa:
 
-- **No Mundo 1** valem todas as regras de sistema: estrutura rígida, pasta-por-agente em `docs/`, versionamento documental obrigatório, frontmatter YAML em todo `.md` de `docs/`, escopo `(system)` no commit.
-- **No Mundo 2** as regras de Conventional Commits, Kanban e branching continuam — mas a **forma dos artefatos é livre**, definida pelo produto. Não use `docs/<bucket>/<agente>/` para artefatos de produto.
+- **Em Mundo 1** (sistema imutável): nunca editar sem requisição explícita. Estrutura, código universal, hooks e generators do template.
+- **Em Mundo 2 / projeto** (`project/`): valem regras de estrutura herdadas do template — pasta-por-agente em `project/docs/`, versionamento documental obrigatório, frontmatter YAML em todo `.md` de `project/docs/`, escopo `(project)` no commit.
+- **Em Mundo 2 / produto** (`products/<produto>/`): regras de Conventional Commits, Kanban e branching continuam — mas a **forma dos artefatos é livre**, definida pelo produto. Não use `project/docs/<bucket>/<agente>/` para artefatos de produto. Escopo no commit fica vazio ou usa o nome do produto: `feat: ...`, `feat(<produto>): ...`.
 
-Quando uma tarefa cruza os dois mundos (ex: refatorar lib do framework que é consumida por um produto), o commit pode usar escopo composto (`feat: ... + chore(system): ...` em commits separados) ou escopo do produto se a mudança principal é no produto.
+Quando uma tarefa cruza contextos (ex: refatorar lib do framework consumida por um produto), o commit pode usar escopo composto (commits separados com escopos diferentes) ou o escopo do contexto principal afetado.
 
 #### Critério do leitor primário (regra de desempate)
 
 A regra abaixo vale para **qualquer artefato do repo** — `.md`, `.py`, `.sh`, `.yaml`, módulo importável, script CLI, teste unitário, dado, tudo. Não distingue documentação de código.
 
-Quando estiver em dúvida se um arquivo vai para Mundo 1 ou Mundo 2, pergunte: **quem é o leitor/consumidor recorrente desse arquivo?**
+Quando estiver em dúvida em qual contexto um arquivo mora, pergunte: **quem é o leitor/consumidor recorrente?**
 
-- Leitor recorrente é o **operador/consumidor de um produto** (você executando o produto, agentes do command que roda o produto, time editorial daquele produto, código que serve apenas àquele produto) → Mundo 2 (`products/<produto>/`).
-- Leitor recorrente é o **time que mantém o sistema agentic** (você decidindo arquitetura do agentic, agentes lendo regras do sistema, onboarding de novos agentes, código universal reutilizável por qualquer produto) → Mundo 1.
+- Leitor recorrente é o **operador/consumidor de um produto** (você executando o produto, agentes do command que roda o produto, código que serve apenas àquele produto) → **Mundo 2 / produto** (`products/<produto>/`).
+- Leitor recorrente é o **time deste projeto** (você consultando memória do projeto, agentes lendo gênese, runbook do projeto, documentação MkDocs publicada) → **Mundo 2 / projeto** (`project/`).
+- Leitor recorrente é o **time que mantém o agentic system universal** (você decidindo arquitetura do framework, agentes lendo regras estruturais, onboarding de novos agentes do template, código reutilizável por qualquer projeto) → **Mundo 1** (`.claude/`, `src/`, `scripts/` raiz, `tests/` raiz).
 
 Quem **escreve** o arquivo não define onde ele mora. Quem **lê/consome de forma recorrente** define.
 
-**Teste prático para código:** se você deletasse o produto X amanhã, o arquivo continuaria fazendo sentido? Se sim, é sistema (Mundo 1). Se não, é produto (Mundo 2). Isso vale para `.py`, `.sh`, `.yaml` igual vale para `.md`.
+**Teste prático em 2 perguntas:**
+
+1. **Se você deletasse o produto X amanhã, o arquivo continuaria fazendo sentido?**
+   - Não → produto (Mundo 2 / produto)
+   - Sim → próxima pergunta
+2. **Se você deletasse este projeto inteiro (incluindo todos os produtos), o arquivo continuaria fazendo sentido?**
+   - Não → projeto (Mundo 2 / projeto, em `project/`)
+   - Sim → sistema (Mundo 1)
+
+Vale para `.py`, `.sh`, `.yaml`, igual vale para `.md`.
 
 Casos típicos que costumam ser mal alocados:
 
 **Documentos:**
-- Runbook de pipeline de produto → vai em `products/<produto>/`, não em `docs/tech/infra-devops/`. (O `infra-devops` é autor; quem lê quando o pipeline quebra é o operador do produto.)
-- Spec operacional / decisão de arquitetura tomada **para atender requisito de um produto** → vai em `products/<produto>/`, não em `docs/tech/tech-lead/`.
-- Plano de teste E2E de um produto → vai em `products/<produto>/`, não em `docs/tech/qa/`.
-- Schema/dicionário de dados de um pipeline que existe **só para um produto** → vai em `products/<produto>/`, não em `docs/tech/data-engineer/`.
+- Runbook de pipeline de produto → vai em `products/<produto>/`, não em `project/docs/tech/infra-devops/`. (O `infra-devops` é autor; quem lê quando o pipeline quebra é o operador do produto.)
+- Spec operacional / decisão de arquitetura tomada **para atender requisito de um produto** → vai em `products/<produto>/`, não em `project/docs/tech/tech-lead/`.
+- Plano de teste E2E de um produto → vai em `products/<produto>/`, não em `project/docs/tech/qa/`.
+- Schema/dicionário de dados de um pipeline que existe **só para um produto** → vai em `products/<produto>/`, não em `project/docs/tech/data-engineer/`.
 
 **Código:**
-- Script de publicação que só serve a um produto (ex: `publish_principal.py` que posta o boletim no Buffer) → vai em `products/<produto>/scripts/`, não em `scripts/` raiz.
-- Pipeline de dados que só serve a um produto (ex: `pipeline_diaria.py` que orquestra bronze→silver→gold do boletim) → vai em `products/<produto>/scripts/`, não em `scripts/` raiz.
-- Módulo importável que só é consumido por um produto (ex: `monitor/health_check.py` que verifica artefatos do boletim) → vai em `products/<produto>/src/`, não em `src/` raiz.
-- Testes desses scripts/módulos → vão em `products/<produto>/tests/`, não em `tests/` raiz.
+- Script de publicação que só serve a um produto (ex: `publish.py` que posta artefato em rede social) → vai em `products/<produto>/scripts/`, não em `scripts/` raiz (Mundo 1).
+- Pipeline de dados que só serve a um produto (ex: `pipeline_diaria.py` que orquestra ETL do produto) → vai em `products/<produto>/scripts/`, não em `scripts/` raiz (Mundo 1).
+- Módulo importável que só é consumido por um produto (ex: `monitor/health_check.py` que verifica artefatos do produto) → vai em `products/<produto>/src/`, não em `src/` raiz (Mundo 1).
+- Testes desses scripts/módulos → vão em `products/<produto>/tests/`, não em `tests/` raiz (Mundo 1).
 
-Casos que ficam em Mundo 1:
-- ADR sobre escolha de framework do sistema agentic.
-- Runbook de CI/CD do próprio sistema (workflow do GitHub Actions, secrets do repo).
-- Research sobre alternativas de LLM, benchmark de framework.
-- Documentação de personas, pitch, posicionamento que vale para **toda a organização**, não para um produto específico.
-- Hooks do framework, geradores universais (`generate_docs.js`), scripts de bootstrap (`cloud_setup.sh`).
-- Libs verdadeiramente universais — usadas (ou planejadas para uso) por **múltiplos produtos**, não apenas um.
+Casos que ficam em **Mundo 2 / projeto** (`project/`):
+- Memória deste projeto (gênese, history, perfil do fundador) → `project/memory/`.
+- Documentação institucional deste projeto (personas, pitch, posicionamento, runbooks que valem para o projeto inteiro) → `project/docs/<bucket>/<agente>/`.
+- Site MkDocs publicado deste projeto → `project/docs-site/`.
+- Runbook de CI/CD que serve **a este projeto** (workflows específicos) → `project/docs/tech/infra-devops/`.
+
+Casos que ficam em **Mundo 1** (sistema imutável):
+- Hooks do framework universal (`scripts/hooks/`), geradores universais (`scripts/generate_docs.js`), scripts de bootstrap (`scripts/cloud_setup.sh`).
+- Libs verdadeiramente universais — usadas (ou planejadas para uso) por **múltiplos projetos** que herdam o template, não apenas este.
+- Definições de agentes do framework (`.claude/agents/`).
+- Settings do Claude Code (`.claude/settings.json`).
 
 #### Subníveis dentro de produto
 
@@ -301,18 +383,18 @@ Dentro de `products/<produto>/` aplica-se a mesma lógica do leitor primário, e
 
 - Código/doc consumido por **uma rotina/sub-produto específico** → `products/<produto>/<rotina>/`
 - Código/doc consumido por **múltiplas rotinas do produto** → `products/<produto>/{scripts,src,tests}/` (raiz do produto)
-- Código/doc consumido por **múltiplos produtos** → `scripts/`, `src/`, `tests/` raiz (Mundo 1)
+- Código/doc consumido por **múltiplos produtos deste projeto** → `project/` (Mundo 2 / projeto) se for específico deste projeto; `scripts/`, `src/`, `tests/` raiz (Mundo 1) se for universal a qualquer projeto
 
-Ex: se hoje só a rotina diária consome o `pipeline_diaria.py`, ele mora em `products/boletim/scripts/pipeline_diaria.py`. Se amanhã a rotina semanal precisar do mesmo orquestrador (improvável — mais provável que ela tenha `pipeline_semanal.py`), aí avalia promover para `products/boletim/scripts/pipeline_comum.py`. Se um terceiro produto (não-boletim) precisar, aí promove para `scripts/` raiz.
+Ex: se hoje só a rotina diária consome o `pipeline_diaria.py`, ele mora em `products/<produto>/<rotina-diaria>/scripts/pipeline_diaria.py` (ou `products/<produto>/scripts/` se já compartilhado). Se amanhã a rotina semanal precisar do mesmo orquestrador (improvável — mais provável que ela tenha `pipeline_semanal.py`), aí avalia promover para `products/<produto>/scripts/pipeline_comum.py`. Se um terceiro produto (diferente) precisar, aí promove para `scripts/` raiz (Mundo 1).
 
 ---
 
-## Estrutura de `docs/` (Mundo 1)
+## Estrutura de `project/docs/` (Mundo 2 / projeto)
 
-`docs/` é **organizado por agente** — cada agente escreve apenas em sua própria pasta. Ali ficam **só documentos** (.md, .pdf, .pptx, .docx) e os assets necessários para gerá-los. Código produtizado nunca vai aqui — vai em `src/` ou `scripts/`.
+`project/docs/` é **organizado por agente** — cada agente escreve apenas em sua própria pasta. Ali ficam **só documentos** (.md, .pdf, .pptx, .docx) e os assets necessários para gerá-los. Código produtizado nunca vai aqui — código de projeto ainda não tem casa formal (caso raro); código de produto vai em `products/<produto>/`.
 
 ```
-docs/
+project/docs/
 ├── business/                                  ← agentes de negócio
 │   ├── product-owner/         → backlog, critérios de aceite, /personas, /prd, /roadmap-update, /sprint-planning
 │   │   └── assets/            → wireframes, prints de Linear/Jira, planilhas de priorização
@@ -333,7 +415,7 @@ docs/
     │   └── assets/            → métricas de modelo, configurações de pipeline ML
     ├── ai-engineer/           → eval reports, prompt design docs, fluxos de agente, RAG
     │   └── assets/            → suites de eval, exemplos de prompt, fluxos visuais
-    ├── frontend-engineer/     → guias UI, design specs, /accessibility-review
+    ├── design-engineer/     → guias UI, design specs, /accessibility-review
     │   └── assets/            → mockups, design tokens, screenshots de a11y
     ├── infra-devops/          → /deploy-checklist, /incident-response, runbooks, IaC docs
     │   └── assets/            → diagramas de cloud, postmortems, configs IaC
@@ -349,15 +431,15 @@ docs/
 - `└── assets/` subpasta para arquivos de apoio (dados brutos, scripts geradores, imagens, datasets)
 
 Regras:
-- **Cada agente escreve apenas em sua própria pasta** (`docs/business/<agente>/` ou `docs/tech/<agente>/`).
-- **Nenhum agente salva documento diretamente em `docs/` raiz** — sempre na pasta do agente.
+- **Cada agente escreve apenas em sua própria pasta** (`project/docs/business/<agente>/` ou `project/docs/tech/<agente>/`).
+- **Nenhum agente salva documento diretamente em `project/docs/` raiz** — sempre na pasta do agente.
 - **Documentos** (.md, .pptx, .pdf, .docx) vão direto na pasta do agente.
 - **Arquivos de apoio** (dados brutos, scripts geradores tipo `gen_pptx.js`/`gen_xlsx.py`, imagens, datasets) ficam em `<pasta-agente>/assets/`.
 - Cada pasta de agente tem `.gitkeep` para versionar a estrutura mesmo vazia.
 
 ### Frontmatter YAML obrigatório
 
-Todo `.md` em `docs/` começa com este header:
+Todo `.md` em `project/docs/` começa com este header:
 
 ```yaml
 ---
@@ -377,7 +459,7 @@ updated: YYYY-MM-DD
 
 ## Versionamento de Documentos
 
-Todo documento versionável (em `docs/`, em `products/<rotina>/`, ou qualquer outro local que use a convenção) segue a regra abaixo — nunca sobrescreva uma versão anterior, e o arquivo vigente sempre tem **nome estável**.
+Todo documento versionável (em `project/docs/`, em `products/<rotina>/`, ou qualquer outro local que use a convenção) segue a regra abaixo — nunca sobrescreva uma versão anterior, e o arquivo vigente sempre tem **nome estável**.
 
 ### Convenção de nome
 
@@ -387,8 +469,8 @@ Todo documento versionável (em `docs/`, em `products/<rotina>/`, ou qualquer ou
 ```
 
 Exemplos:
-- Vigente: `docs/business/project-manager/relatorio.md`, `products/<produto>/<arquivo>.md`
-- Archive: `docs/business/project-manager/archive/relatorio_2026-04-28_v1.md`, `products/<produto>/archive/<arquivo>_2026-05-02_v1.md`
+- Vigente: `project/docs/business/project-manager/relatorio.md`, `products/<produto>/<arquivo>.md`
+- Archive: `project/docs/business/project-manager/archive/relatorio_2026-04-28_v1.md`, `products/<produto>/archive/<arquivo>_2026-05-02_v1.md`
 
 **Semântica da data no archive:** `YYYY-MM-DD` é a **data em que a versão foi arquivada** (saiu de vigência), obtida no momento do `git mv` via `date +%Y-%m-%d`. Não é a data em que a versão foi criada nem a data do último mtime do arquivo. Isso é determinístico e o agente não precisa ler o conteúdo do .md para decidir o nome.
 
@@ -409,11 +491,11 @@ A pasta `archive/` é criada quando necessário e nunca é deletada — preserva
 
 ### Geração de PDF/DOCX/PPTX
 
-O hook `post_write.sh` dispara automaticamente `scripts/generate_docs.js` ao salvar qualquer `.md` em `docs/`. O gerador produz os arquivos em `docs/<subdir>/generated/` espelhando a estrutura de origem (incluindo `archive/`).
+O hook `post_write.sh` dispara automaticamente `scripts/generate_docs.js` ao salvar qualquer `.md` em `project/docs/`. O gerador produz os arquivos em `project/docs/<subdir>/generated/` espelhando a estrutura de origem (incluindo `archive/`).
 
 Para rodar manualmente:
 ```bash
-node scripts/generate_docs.js docs/<subdir>/{nome}.md
+node scripts/generate_docs.js project/docs/<subdir>/{nome}.md
 ```
 
 ---
@@ -435,8 +517,44 @@ Este projeto inclui 13 agentes em `.claude/agents/`. O ponto de entrada padrão 
 | `qa` | Testes unitários, integração, e2e |
 | `researcher` | Pesquisa técnica e de produto, benchmarks, inteligência competitiva |
 | `security-auditor` | Segurança, vulnerabilidades |
-| `frontend-engineer` | Web, UI, UX |
+| `design-engineer` | Web, UI, UX |
 | `marketing-strategist` | Marketing, publicidade, mídias, go-to-market |
+
+### Organograma e cadeia de spawn
+
+O `project-manager` é o **único agente do time com acesso à Task tool** (limitação do Claude Agent SDK: subagentes não spawnam subagentes). Todo spawn de especialista — inclusive os técnicos sob autoridade do `tech-lead` — passa pelo PM. As setas abaixo representam **autoridade técnica e fluxo de briefing**, não a cadeia de spawn (que é sempre PM → especialista).
+
+```mermaid
+graph TD
+    U(["👤 Fundador / PM"]) --> PM["🗂️ Project Manager\núnico spawnador via Task"]
+
+    PM -->|spawna| PO["📋 Product Owner\nkanban + backlog"]
+    PM -->|spawna| TL["🧠 Tech Lead\nplano técnico + code review"]
+    PM -->|spawna| RES["🔍 Researcher\npesquisa técnica e de produto"]
+    PM -->|spawna| MKT["📣 Marketing Strategist\ngo-to-market + mídia"]
+
+    PO --> KB[("GitHub Kanban")]
+
+    TL -.->|recomenda PM acionar| DE["🔧 Data Engineer\npipelines + ETL"]
+    TL -.->|recomenda PM acionar| DS["📈 Data Scientist\nanálise + modelagem"]
+    TL -.->|recomenda PM acionar| MLE["📊 ML Engineer\nprodutização de modelos"]
+    TL -.->|recomenda PM acionar| AIE["🤖 AI Engineer\nLLMs + agentes + RAG"]
+    TL -.->|recomenda PM acionar| IDF["☁️ Infra & DevOps\ncloud + CI/CD"]
+    TL -.->|recomenda PM acionar| QA["✅ QA\ntestes + qualidade"]
+    TL -.->|recomenda PM acionar| SEC["🔒 Security Auditor\nsegurança + vulnerabilidades"]
+    TL -.->|recomenda PM acionar| FE["🖥️ Frontend Engineer\nweb + UI + UX"]
+
+    PM -->|spawna com briefing do TL| DE
+    PM -->|spawna com briefing do TL| DS
+    PM -->|spawna com briefing do TL| MLE
+    PM -->|spawna com briefing do TL| AIE
+    PM -->|spawna com briefing do TL| IDF
+    PM -->|spawna com briefing do TL| QA
+    PM -->|spawna com briefing do TL| SEC
+    PM -->|spawna com briefing do TL| FE
+```
+
+**Como ler:** setas sólidas (`-->|spawna|`) mostram quem o PM aciona via Task. Setas tracejadas (`-.->|recomenda PM acionar|`) mostram a recomendação técnica do `tech-lead` no plano de execução — o spawn em si é sempre feito pelo PM.
 
 ---
 
@@ -444,7 +562,7 @@ Este projeto inclui 13 agentes em `.claude/agents/`. O ponto de entrada padrão 
 
 O kanban é a **fonte de verdade** do processo. Nenhum agente age sem consultar o kanban.
 
-**Se precisar consultar issues e cards no Kanban** (project-number, owner, IDs de status), leia `.claude/memory/kanban_ids.md` — é a fonte de verdade dos IDs do projeto.
+**Se precisar consultar issues e cards no Kanban** (project-number, owner, IDs de status), leia `project/memory/kanban_ids.md` — é a fonte de verdade dos IDs do projeto.
 
 | Papel | Agente | Permissões |
 |---|---|---|
@@ -504,7 +622,7 @@ feature/* → dev → main
 
 **Regras obrigatórias:**
 - Nunca fazer push direto em `dev` ou `main` — sempre branch + PR
-- Mudanças em `.claude/`, `CLAUDE.md`, `AGENTS.md` também seguem essa regra — nunca push direto
+- Mudanças em arquivos de Mundo 1 (`.claude/`, estrutura de `CLAUDE.md`/`AGENTS.md`, hooks/generators) e Mundo 2 / projeto (`project/`) também seguem essa regra — nunca push direto, sempre PR
 - `main` só recebe merge quando o usuário pedir explicitamente
 
 **Regra crítica — `--delete-branch` e proteção de `dev`:**
@@ -515,29 +633,120 @@ feature/* → dev → main
 
 ## Convenção de Commits
 
-Todos os commits seguem **Conventional Commits** com escopo obrigatório para diferenciar infraestrutura agentic de trabalho de produto:
+Todos os commits seguem **Conventional Commits** com escopo obrigatório que reflete os 3 contextos da arquitetura:
 
 | Escopo | Quando usar | Exemplos |
 |---|---|---|
-| `(system)` | Mudanças no sistema agentic: `.claude/`, `CLAUDE.md`, agentes, hooks, memória, scripts | `docs(system): atualizar project_history`, `chore(system): adicionar hook post_write` |
-| sem escopo | Trabalho de produto: código, features, docs de produto, testes | `feat: implementar autenticação JWT`, `docs: add research report` |
+| `(system)` | Mundo 1 — sistema agentic imutável (template universal): `.claude/`, definições de agentes, hooks/generators do framework, estrutura de `CLAUDE.md`/`AGENTS.md` | `chore(system): adicionar hook post_write`, `feat(system): novo agente data-engineer` |
+| `(project)` | Mundo 2 / projeto: memória do projeto (`project/memory/`), docs do projeto (`project/docs/`), site MkDocs (`project/docs-site/`), regras textuais em `CLAUDE.md`/`AGENTS.md` | `docs(project): atualizar project_history`, `docs(project): novo runbook do tech-lead` |
+| sem escopo OU `(<produto>)` | Mundo 2 / produto: código, features, docs e testes em `products/<produto>/` | `feat: implementar autenticação JWT`, `feat(<produto>): pipeline X` |
 
-**Regra:** mudanças de infraestrutura agentic nunca se misturam com commits de produto no mesmo commit.
+**Regras:**
+- Mudanças entre contextos diferentes nunca se misturam no mesmo commit
+- Ao **estrutura** de `CLAUDE.md`/`AGENTS.md` (regra que vale para qualquer projeto) muda → `(system)`. Ao **conteúdo** específico deste projeto muda (referências a produtos, decisões deste projeto) → `(project)`
+- Em caso de dúvida entre `(system)` e `(project)` para uma mudança em `CLAUDE.md`: pergunte "essa regra serviria para qualquer projeto que herda do template?". Sim → `(system)`. Não → `(project)`
 
 ## Memória Persistente
 
-O projeto mantém memória persistente em `.claude/memory/` — criada pela Fase 0 do `/kickoff` e atualizada via `/update-memory`.
+A memória persistente vive **integralmente em Mundo 2** (mutável). Mundo 1 (sistema imutável) **não tem memória própria** — só estrutura herdada do template. O que cresce com o trabalho fica em 2 níveis:
+
+### Mundo 2 / projeto — memória do projeto (`project/memory/`)
+
+Criada pela Fase 0 do `/kickoff` e atualizada via `/update-memory`. Específica deste projeto inteiro (não universal de template, não específica de um produto).
 
 | Arquivo | Conteúdo | Quem lê |
 |---|---|---|
-| `MEMORY.md` | Índice com links para os outros arquivos | project-manager, tech-lead |
+| `MEMORY.md` | Índice com links para os outros arquivos + ponteiros para MEMORY.md de cada produto | project-manager, tech-lead |
 | `user_profile.md` | Trajetória, rede e preferências do fundador | project-manager, tech-lead |
 | `project_genesis.md` | Motivação fundadora, ancoragens estratégicas, exclusões | project-manager, tech-lead |
-| `project_history.md` | Changelog humano — decisões, entregáveis, restrições | project-manager, tech-lead |
+| `project_history.md` | Changelog humano — decisões, entregáveis, restrições do projeto | project-manager, tech-lead |
 
-**Regra:** somente o `project-manager` e o `tech-lead` leem a memória antes de agir. Os especialistas recebem contexto relevante via prompt de delegação — não lêem a memória diretamente.
+### Mundo 2 / produto — memória de produto (`products/<produto>/`)
 
-**Regra de briefing:** ao montar o prompt de delegação para um especialista, o PM e o tech-lead verificam o MEMORY.md e incluem referências aos guidelines relevantes para a tarefa (se houverem). O especialista não descobre guidelines por conta própria — recebe no briefing.
+Cada produto em `products/<produto>/` tem **seu próprio `MEMORY.md`**, que é o índice dos documentos vivos do produto (plan, guidelines, runbook, visual template, etc — varia por produto). Estrutura simétrica à de Mundo 2 / projeto: o MEMORY.md do produto **não duplica** conteúdo, apenas aponta para arquivos.
+
+**Convenção universal de Mundo 2 / produto (criada por `/kickoff-product`):**
+
+Todo produto tem:
+1. `products/<produto>/MEMORY.md` — índice de docs vivos do produto
+2. `products/<produto>/<produto>_plan_vN.md` (ou nome equivalente como `pipeline_plan_v4.md`) — **plan append-only versionado** seguindo as regras de versionamento (§"Versionamento de Documentos"): nome estável, archive em `products/<produto>/archive/<plan>_YYYY-MM-DD_vN.md`, seção §15.x (ou similar) que cresce a cada nova entrega
+3. `products/<produto>/archive/` — versões antigas dos docs vivos versionados
+
+Outros docs canônicos do produto (guidelines, runbook, visual template, etc) emergem organicamente conforme o produto cresce, sempre apontados pelo MEMORY.md do produto.
+
+**Regra de manutenção do índice (Mundo 2 / produto):**
+
+Sempre que criar um doc novo dentro de `products/<produto>/` (guideline, runbook, visual template, ADR específico do produto, schema de dados, etc.), **atualize `products/<produto>/MEMORY.md` na mesma operação** adicionando uma linha apontando para o arquivo. Sem essa atualização, o índice fica desatualizado e PM/TL futuros não enxergam o doc — perdendo contexto que era pra estar disponível.
+
+A linha do índice segue o mesmo padrão das outras: `[Título](caminho.md) — descrição em uma linha`. Não é necessário PR separado: a criação do doc + atualização do MEMORY.md vão juntas no mesmo commit/PR.
+
+A mesma regra vale para **arquivamento**: se um doc deixar de ser vigente (substituído por nova versão, removido), atualize o MEMORY.md removendo ou atualizando a linha correspondente.
+
+**Regra de atualização do plan (Mundo 2 / produto apenas):**
+
+Sempre que um PR for mergeado em `dev` ou `main` afetando arquivos em `products/<produto>/`, o plan do produto deve receber uma nova seção §15.x (ou equivalente) descrevendo:
+
+- Issue/PR number
+- Mudança em uma linha
+- Decisões tomadas durante a entrega (se houver)
+- Suite de testes (se mudou)
+
+**Cadência da atualização — em batch via `/update-memory-product`, não a cada merge:**
+
+A atualização acontece **em batch periódico** rodando o command `/update-memory-product` (análogo ao `/update-memory` de Mundo 2 / projeto). A skill varre commits desde a última entrada §15.x do plan do produto e escreve N entradas de uma vez, em um único PR.
+
+**Por que não é update por merge:**
+- Update a cada merge fragmentaria o histórico em micro-commits
+- Cada merge dispararia uma nova sessão LLM só pra escrever uma linha — alto custo, baixo retorno
+- Em batch, você decide quando rodar (fim do dia, fim da semana, antes de promoção pra main) e paga o custo uma vez
+
+**Hook avisador (opcional):** quando merge em `products/<produto>/` acontecer via `gh pr merge`, um hook do Claude Code pode exibir lembrete `"considere rodar /update-memory-product quando conveniente"`. **É lembrete, não obrigação imediata** — operador decide a cadência da skill. Se o hook não for configurado, a regra ainda vale: você lembra de rodar a skill periodicamente.
+
+A regra vale para **qualquer produto** em `products/<produto>/`. A skill garante que nenhum merge é pulado (lê commits desde último §15.x). Em Mundo 2 / projeto, `/update-memory` tem cadência subjetiva (semanal/quinzenal). Em Mundo 2 / produto, a cadência da skill é decisão sua, mas a varredura é completa.
+
+### Regras de leitura
+
+**Ordem de leitura obrigatória antes de agir (por agente):**
+
+**`project-manager` e `product-owner`** leem, nesta ordem:
+
+1. `project/memory/MEMORY.md` — índice da memória persistente
+2. `project/memory/user_profile.md` — trajetória, preferências e objetivos do fundador
+3. `project/memory/project_genesis.md` — motivação fundadora, ancoragens estratégicas, exclusões
+4. `project/memory/project_history.md` — changelog humano — decisões, entregáveis, restrições
+5. Estado do Kanban via `gh project item-list`
+6. `git log --oneline -10` — últimos commits
+
+**`tech-lead`** lê:
+
+1. `project/memory/MEMORY.md` — índice da memória persistente (inclui referências a guidelines do projeto)
+2. `project/memory/project_genesis.md` — contexto do projeto
+3. `project/docs/business/project-manager/relatorio.md` (se existir) — problem statement e backlog aprovados pelo `/kickoff`
+4. `git log --oneline -10` — últimos commits
+
+**Todos os demais agentes** leem apenas:
+
+1. `git log --oneline -10` — últimos commits
+
+Se algum arquivo contradisser a instrução recebida, o agente **pára e reporta** — não resolve silenciosamente.
+
+**Resumo das responsabilidades de leitura:**
+
+- **PM/tech-lead leem o `project/memory/MEMORY.md` raiz antes de agir** — sempre, em qualquer trabalho.
+- **Quando o trabalho cair em `products/<produto>/`, PM/tech-lead também leem `products/<produto>/MEMORY.md`** antes de delegar — para conhecer os docs vivos do produto e identificar quais o especialista deve receber no briefing.
+- Especialistas não leem memória diretamente — recebem ponteiros pelos arquivos relevantes via prompt de delegação.
+
+**Profundidade de leitura — PM/TL podem (e devem) ler o conteúdo quando necessário:**
+
+A leitura padrão é o **índice** (MEMORY.md). PM/TL **abrem o conteúdo** dos docs apontados quando o índice não bastar para decidir bem — por exemplo:
+
+- Quando precisar entender contexto histórico para escolher abordagem de delegação (ex: ler `pipeline_plan_v4.md` antes de decidir como abordar fix relacionado a uma decisão antiga registrada em §15.x)
+- Quando precisar identificar **qual** guideline específico é relevante para a tarefa (ex: ler `editorial_guidelines.md` antes de saber se aquele exemplo desatualizado afeta a tarefa atual)
+- Quando o título no índice for ambíguo ou genérico, e a decisão de delegação depender de saber o conteúdo
+
+**Especialistas, ao contrário, só leem o que receberem no briefing** — não exploram docs por conta própria. O contraste é proposital: PM/TL têm autonomia exploratória para tomar decisões de delegação; especialistas executam dentro do escopo definido.
+
+**Regra de briefing:** ao montar o prompt de delegação para um especialista, o PM e o tech-lead verificam **ambos** os MEMORY.md (raiz e do produto, se aplicável) e incluem referências aos guidelines relevantes para a tarefa (se houverem). O especialista não descobre guidelines por conta própria — recebe no briefing.
 
 ## Autenticação GitHub
 
@@ -548,16 +757,38 @@ Dois mecanismos disponíveis — use o adequado para cada operação:
 | `gh` CLI | `GH_TOKEN` do `.env` | merge, delete-branch, PR, issues via terminal |
 | MCP GitHub | token do `.mcp.json` (automático) | operações via ferramentas MCP do Claude |
 
-**Antes de usar `gh`**, carregue o token:
+**Antes de usar `gh`**, carregue o token (fórmula universal — funciona em sessão principal e dentro de worktree):
 ```bash
-export GH_TOKEN=$(grep GH_TOKEN .env | cut -d= -f2)
+export GH_TOKEN=$(grep GH_TOKEN "$(git rev-parse --git-common-dir)/../.env" | cut -d= -f2)
 ```
+
+`git rev-parse --git-common-dir` resolve ao `.git` do repo principal mesmo dentro de worktree (subagentes spawnados com `isolation: "worktree"`). Subir 1 nível chega à raiz do repo onde está o `.env`.
 
 O MCP GitHub não precisa de configuração adicional — o token do `.mcp.json` é carregado automaticamente pelo Claude Code.
 
-**Para merge com delete automático de branch**, sempre usar:
+### Como especialistas abrem PR
+
+Especialistas que produzem trabalho (código ou docs) abrem PR via `gh` CLI:
+
 ```bash
-gh pr merge --merge --delete-branch
+export GH_TOKEN=$(grep GH_TOKEN "$(git rev-parse --git-common-dir)/../.env" | cut -d= -f2)
+git checkout -b feature/<nome-descritivo>   # ou fix/<nome>, docs/<tema>
+git add <arquivos>
+git commit -m "<tipo>(<escopo>): <mensagem>"
+git push -u origin feature/<nome-descritivo>
+gh pr create --base dev --head feature/<nome-descritivo> \
+    --title "<título>" --body "<body com link da issue, test plan>"
+```
+
+A fórmula de `GH_TOKEN` acima é a mesma — funciona em sessão principal e dentro de worktree (`isolation: "worktree"`).
+
+**Para merge de PRs**, comandos por contexto (ver §"Regras de Branches" para detalhes da regra crítica):
+```bash
+# feature/* ou fix/* → dev: com --delete-branch (apaga branch da feature)
+gh pr merge <num> --merge --delete-branch
+
+# dev → main: SEM --delete-branch (apagar dev seria catastrófico)
+gh pr merge <num> --merge
 ```
 
 ---
@@ -570,7 +801,8 @@ gh pr merge --merge --delete-branch
 | Produzir documentação | `product-owner`, `researcher`, `marketing-strategist` |
 | Abrir PR | agente que produziu o trabalho |
 | Review de PRs de código | `tech-lead` — sempre |
-| Review de PRs de docs (`docs/`) | `project-manager` — sempre |
+| Review de PRs de docs do projeto (`project/docs/`) | `project-manager` — sempre |
+| Review de PRs de docs de produto (`products/<produto>/*.md`, runbooks, guidelines) | `tech-lead` se acompanha código; `product-owner` se é spec/critério; PM em casos editoriais — varia por contexto do produto |
 | Security review | `security-auditor` — PRs com infra, auth ou dados sensíveis |
 | QA review | `qa` — valida cobertura de testes |
 | Aprovar PR de código | `tech-lead` |
@@ -616,7 +848,6 @@ Em sessões cloud, os comandos de contexto se comportam diferente:
 
 - `/compact` → disponível — resume a conversa e libera contexto; aceita instruções de foco (ex: `/compact manter output dos testes`)
 - `/clear` (comando interno do Claude) → **não disponível** em cloud — usar `/compact` no lugar
-- `/clean` (command do projeto) → funciona normalmente em qualquer ambiente
 
 ---
 
@@ -625,14 +856,15 @@ Em sessões cloud, os comandos de contexto se comportam diferente:
 | Command | Quando usar |
 |---|---|
 | `/kickoff` | Iniciar um projeto novo — discovery, pesquisa, relatório, apresentação, backlog, delegação |
+| `/kickoff-product` | Criar um novo produto em `products/<nome>/` — gera MEMORY.md + plan inicial versionado + estrutura mínima de pastas. Usar **sempre** ao adicionar produto novo (não criar pasta na mão) |
 | `/advance` | Avançar no Kanban — fecha prontos, valida com PO, paraleliza issues independentes, delega |
 | `/review-backlog` | Varredura proativa — fecha prontos, identifica lacunas, refina e cria novas issues |
 | `/review` | Acionar TL para code review de um PR específico |
 | `/deploy` | Acionar infra-devops para deploy |
 | `/fix-issue` | Acionar especialista para corrigir um bug ou problema reportado |
-| `/clean` | Commitar e fazer push de tudo que está pendente localmente, de forma segura |
-| `/update-memory` | Atualizar memória do projeto — registrar decisões, restrições e entregáveis aprovados (incremental) |
-| `/update-memory-full` | Reconstruir memória completa — usar quando o histórico está vazio ou muito defasado |
+| `/update-memory` | Atualizar memória do projeto (Mundo 2 / projeto) — registrar decisões, restrições e entregáveis em `project_history.md` (incremental) |
+| `/update-memory-full` | Reconstruir memória do projeto completa — usar quando histórico está vazio ou muito defasado |
+| `/update-memory-product` | Atualizar plan de produto (Mundo 2 / produto) — varre commits desde último §15.x, escreve N entradas em batch, abre PR para `dev`. Argumento opcional: `<nome-do-produto>` |
 
 ---
 

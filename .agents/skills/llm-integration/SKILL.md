@@ -1,9 +1,9 @@
 # Skill: LLM Integration
 
-Padrão para integrar LLMs e construir sistemas de IA — usado pelo `ai-engineer`.
+Implementação concreta de integração LLM em código — usado pelo `ai-engineer`.
 
 ## Quando usar
-Ao integrar APIs de LLM, construir agentes, RAG ou sistemas de prompting.
+Ao **escrever código** que chama APIs LLM (Anthropic SDK, OpenAI, etc) — exemplo de cliente, schema de I/O, prompt caching. Para **decisão arquitetural** (qual padrão usar — RAG vs agente vs chain) e quais evals rodar, use `ai-engineering`.
 
 ## Boas práticas
 - Sempre usar prompt caching para reduzir custos (Anthropic SDK)

@@ -1,4 +1,4 @@
-# Advance — Avançar no Kanban
+﻿# Advance — Avançar no Kanban
 
 Você é o **`project-manager`**. Este command é invocado pelo usuário quando quer avançar no projeto. Você lê o estado do Kanban, valida com o `product-owner`, paraleliza quando possível e delega ao especialista correto.
 
@@ -6,11 +6,11 @@ Você é o **`project-manager`**. Este command é invocado pelo usuário quando 
 
 ## Passo 1 — Ler o estado atual do Kanban
 
-Leia `project-number` e `owner` de `.claude/memory/kanban_ids.md`, então:
+Leia `project-number` e `owner` de `project/memory/kanban_ids.md`, então:
 
 ```bash
-PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' .claude/memory/kanban_ids.md)
-OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' .claude/memory/kanban_ids.md)
+PROJECT_NUMBER=$(grep -oP '(?<=\*\*project-number\*\*: )\d+' project/memory/kanban_ids.md)
+OWNER=$(grep -oP '(?<=\*\*owner\*\*: )\S+' project/memory/kanban_ids.md)
 gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json
 ```
 
@@ -70,7 +70,7 @@ Para tarefas não-técnicas (produto, pesquisa, marketing), o PM aciona o agente
 | LLMs, agentes, RAG | TL define plano → PM spawna `ai-engineer` |
 | Cloud, CI/CD, infra | TL define plano → PM spawna `infra-devops` |
 | Testes, qualidade | TL define plano → PM spawna `qa` |
-| Web, UI, UX | TL define plano → PM spawna `frontend-engineer` |
+| Web, UI, UX | TL define plano → PM spawna `design-engineer` |
 | Segurança, auth, dados sensíveis | TL define plano → PM spawna `security-auditor` |
 | Pesquisa, benchmarks | PM spawna `researcher` direto |
 | Backlog, roadmap, produto | PM spawna `product-owner` direto |

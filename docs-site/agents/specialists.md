@@ -60,7 +60,7 @@ Os 10 agentes que executam o trabalho técnico e estratégico.
 
 **Entrega:** workflows GitHub Actions, Dockerfiles, scripts Terraform/CDK, dashboards de observabilidade.
 
-**Colabora com:** security-auditor (revisão de infra), frontend-engineer (deploy de apps web).
+**Colabora com:** security-auditor (revisão de infra), design-engineer (deploy de apps web).
 
 **Skill:** `.agents/skills/infra-devops/SKILL.md`
 
@@ -90,7 +90,7 @@ Os 10 agentes que executam o trabalho técnico e estratégico.
 
 ---
 
-### frontend-engineer
+### design-engineer
 
 **Aciona quando:** web, UI/UX, acessibilidade, performance web, frameworks frontend.
 

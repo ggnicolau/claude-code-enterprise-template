@@ -9,7 +9,7 @@ Como os agentes se comunicam, colaboram e transferem trabalho.
 | Agente | Responde a | Trabalha com |
 |---|---|---|
 | `project-manager` | Usuário | tech-lead, product-owner, researcher, marketing-strategist |
-| `tech-lead` | project-manager | data-engineer, data-scientist, ml-engineer, ai-engineer, infra-devops, qa, security-auditor, frontend-engineer, researcher |
+| `tech-lead` | project-manager | data-engineer, data-scientist, ml-engineer, ai-engineer, infra-devops, qa, security-auditor, design-engineer, researcher |
 | `product-owner` | project-manager | researcher, marketing-strategist, Kanban |
 | `researcher` | PM / PO / TL | todos que precisam de inteligência |
 | `marketing-strategist` | PM / PO | researcher, data-scientist |
@@ -18,7 +18,7 @@ Como os agentes se comunicam, colaboram e transferem trabalho.
 | `ml-engineer` | tech-lead | data-scientist, data-engineer, researcher |
 | `ai-engineer` | tech-lead | researcher, ml-engineer |
 | `infra-devops` | tech-lead | security-auditor |
-| `frontend-engineer` | tech-lead | infra-devops, researcher |
+| `design-engineer` | tech-lead | infra-devops, researcher |
 | `qa` | tech-lead | data-engineer, data-scientist |
 | `security-auditor` | tech-lead / infra-devops | infra-devops |
 

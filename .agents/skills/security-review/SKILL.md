@@ -1,24 +1,46 @@
 # Skill: Security Review
 
-Padrão para revisão de segurança — usado pelo `security-auditor`.
+Checklist rápido pré-PR — usado pelo `security-auditor` para revisão tática.
 
 ## Quando usar
-Ao revisar código, infra ou configurações em busca de vulnerabilidades.
+Antes de mergear um PR pequeno/médio onde uma auditoria OWASP completa seria overhead. Para PRs grandes ou com infra/auth/dados sensíveis, usar `security-audit` (auditoria profunda).
 
-## Checklist base
-- [ ] Secrets e credenciais hardcodados?
-- [ ] Inputs de usuário validados e sanitizados?
-- [ ] SQL injection, XSS ou command injection possíveis?
-- [ ] Dependências com CVEs conhecidos?
-- [ ] Permissões mínimas configuradas (IAM, tokens)?
-- [ ] Dados sensíveis logados indevidamente?
+## Checklist (5 minutos)
 
-## Severidade
-- 🔴 Crítico — exploração imediata possível (ex: secret exposto)
-- 🟠 Alto — risco real mas requer condição específica
-- 🟡 Médio — boa prática não seguida
-- 🔵 Info — observação sem risco imediato
+**Secrets:**
+- [ ] Nenhum token, key ou credencial hardcoded no código
+- [ ] `.env` no `.gitignore`, sem rastreamento acidental
+- [ ] Secrets de CI no secret manager — nunca em logs
 
-## O que NÃO fazer
-- Não aprovar deploy com 🔴 em aberto
-- Não sugerir segurança que bloqueia desenvolvimento sem justificativa clara
+**Inputs:**
+- [ ] Inputs externos validados e/ou parametrizados (SQL, shell, paths)
+- [ ] Sem `eval`/`exec`/`os.system` com input externo
+
+**Permissões:**
+- [ ] Tokens com escopo mínimo necessário (princípio do menor privilégio)
+- [ ] Endpoints autenticam quem precisa autenticar
+
+**Logs:**
+- [ ] Sem PII (CPF, e-mail, nome) em logs
+- [ ] Sem secrets em mensagens de erro
+
+**Dependências:**
+- [ ] `pip-audit` / `npm audit` sem 🔴 Crítico em aberto
+
+## Severidade (alinhada com `security-audit`)
+
+🔴 Crítico | 🟡 Aviso | 🔵 Sugestão
+
+## Quando escalar para `security-audit`
+
+Se o checklist acima detectar 🔴 ou 🟡, ou se o PR envolve:
+- Autenticação/autorização
+- Dados sensíveis (PII, financeiro, saúde)
+- Configuração de infra
+- Superfície de API pública
+
+→ pare e rode auditoria profunda com `security-audit` (OWASP Top 10 estruturado).
+
+## Operações git/PR
+
+Para auth, fluxo de branch e merge, ver CLAUDE.md §"Autenticação GitHub" e §"Como especialistas abrem PR".

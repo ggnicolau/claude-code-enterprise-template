@@ -17,10 +17,10 @@ Os três agentes que controlam o fluxo de trabalho.
 - **Nunca escreve código, nunca move cards diretamente**
 
 **Contexto obrigatório antes de agir:**
-1. `.claude/memory/MEMORY.md`
-2. `.claude/memory/user_profile.md`
-3. `.claude/memory/project_genesis.md`
-4. `.claude/memory/project_history.md`
+1. `project/memory/MEMORY.md`
+2. `project/memory/user_profile.md`
+3. `project/memory/project_genesis.md`
+4. `project/memory/project_history.md`
 5. Estado atual do Kanban via `gh project item-list`
 
 ---
@@ -38,7 +38,7 @@ Os três agentes que controlam o fluxo de trabalho.
 - **Nunca toma decisões de produto ou priorização**
 
 **Contexto obrigatório antes de agir:**
-1. `.claude/memory/project_genesis.md`
+1. `project/memory/project_genesis.md`
 2. `git log --oneline -20`
 
 ---
@@ -55,6 +55,6 @@ Os três agentes que controlam o fluxo de trabalho.
 - **Nunca implementa features, nunca revisa código**
 
 **Contexto obrigatório antes de agir:**
-1. `.claude/memory/MEMORY.md`
-2. `.claude/memory/project_genesis.md`
+1. `project/memory/MEMORY.md`
+2. `project/memory/project_genesis.md`
 3. Estado do Kanban via `gh project item-list`
