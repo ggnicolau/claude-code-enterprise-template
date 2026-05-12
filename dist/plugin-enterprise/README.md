@@ -1,4 +1,4 @@
-# Enterprise Plugin (v1.0.0)
+# Enterprise Plugin (v1.1.0)
 
 Plugin Claude Code que empacota o sistema agentic Dual Multi-Agent do
 [claude-code-enterprise-template](https://github.com/ggnicolau/claude-code-enterprise-template).
@@ -6,7 +6,7 @@ Plugin Claude Code que empacota o sistema agentic Dual Multi-Agent do
 ## Conteúdo
 
 - **13 agentes** em `agents/` (project-manager, tech-lead, product-owner, etc)
-- **11 commands** em `commands/` (kickoff, advance, deploy, fix-issue, review-backlog, etc)
+- **12 commands** em `commands/` (kickoff, advance, deploy, fix-issue, review-backlog, etc)
 - **6 hooks** em `hooks/` (session_start, post_write, post_bash_merge, team_create_register, export_team_transcript)
 - `hooks/hooks.json` registrando os hooks com paths relativos ao plugin
 
@@ -30,18 +30,29 @@ Comandos ficam namespaced:
 
 ## O que **não** vem com o plugin
 
-Estes precisam ser configurados no projeto consumidor manualmente:
+Plugin Claude Code não tem mecanismo nativo para distribuir `CLAUDE.md`/`AGENTS.md`,
+`.claude/settings.json` (exceto poucas keys), nem `.gitignore`.
 
-1. **`CLAUDE.md` e `AGENTS.md`** — regras de Mundo 1/Mundo 2, convenções, equipe, kanban.
-   Copie de `scripts/templates/CLAUDE.md` e `scripts/templates/AGENTS.md` do template.
-   Plugin Claude Code não tem mecanismo nativo de injetar CLAUDE.md.
+### Para `CLAUDE.md` e `AGENTS.md`: rode `/enterprise:install-rules`
 
-2. **`.claude/settings.json`** — permissions, env vars (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS,
+A skill `install-rules` baixa os 2 arquivos direto do template via `gh api`:
+
+```shell
+/enterprise:install-rules
+```
+
+Requer `gh` autenticado com acesso ao repo `ggnicolau/claude-code-enterprise-template`.
+Funciona on-demand — sempre puxa a versão mais recente do template, sem duplicar
+conteúdo dentro do plugin.
+
+### Para o resto, configurações manuais
+
+1. **`.claude/settings.json`** — permissions, env vars (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS,
    etc), `cleanupPeriodDays`. Copie do template ou configure manualmente.
 
-3. **`.gitignore`** — entradas para `.claude/team_runs/`, `.claude/scheduled_tasks.lock`, etc.
+2. **`.gitignore`** — entradas para `.claude/team_runs/`, `.claude/scheduled_tasks.lock`, etc.
 
-4. **Estrutura de pastas** — `project/`, `products/`, `project/memory/`, `project/docs/`.
+3. **Estrutura de pastas** — `project/`, `products/`, `project/memory/`, `project/docs/`.
 
 Para projeto novo, use `new_repo.py` (wizard do template) que faz tudo isso de uma vez.
 Plugin é para projetos **já existentes** que querem adotar o sistema agentic, ou para
@@ -74,7 +85,7 @@ python scripts/build_plugin.py --version 1.1.0
 
 ## Versionamento
 
-Versão atual: **1.0.0**
+Versão atual: **1.1.0**
 
 Cada bump é commit no repo do template. Consumers recebem update via `/plugin update`
 quando o marketplace for atualizado.

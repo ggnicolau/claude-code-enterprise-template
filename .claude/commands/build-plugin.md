@@ -39,9 +39,10 @@ Sem `--version`, mantém versão atual do `dist/plugin-enterprise/.claude-plugin
    - `wizard.md`, `sync-master.md`, `sync-to-projects.md`, `sync-to-template.md`, `build-plugin.md` (template-only)
 4. Copia `scripts/hooks/*.sh, *.py` → `dist/plugin-enterprise/hooks/`
 5. Gera `dist/plugin-enterprise/hooks/hooks.json` a partir do bloco `hooks` de `.claude/settings.json` — reescreve paths de `$CLAUDE_PROJECT_DIR/scripts/hooks/` para `${CLAUDE_PLUGIN_ROOT}/hooks/`
-6. Gera `dist/plugin-enterprise/.claude-plugin/plugin.json` (manifest)
-7. Gera `dist/plugin-enterprise/README.md` com instruções de instalação
-8. Gera `.claude-plugin/marketplace.json` na raiz do template apontando para o plugin gerado
+6. **Gera** `dist/plugin-enterprise/commands/install-rules.md` — skill consumível como `/enterprise:install-rules`, baixa `CLAUDE.md` e `AGENTS.md` do template via `gh api` (não duplica conteúdo no plugin)
+7. Gera `dist/plugin-enterprise/.claude-plugin/plugin.json` (manifest)
+8. Gera `dist/plugin-enterprise/README.md` com instruções de instalação
+9. Gera `.claude-plugin/marketplace.json` na raiz do template apontando para o plugin gerado
 
 ## Limitações conhecidas do plugin
 
@@ -50,10 +51,11 @@ Plugin Claude Code não tem mecanismo nativo para:
 - Distribuir `settings.json` (apenas `agent` e `subagentStatusLine` são suportados)
 - Distribuir `.gitignore`
 
-Por isso, o README do plugin gerado instrui consumidores a copiar manualmente:
-- `CLAUDE.md` e `AGENTS.md` do template
-- `.claude/settings.json` (para permissions, env vars)
-- `.gitignore`
+**Workarounds aplicados:**
+
+- **`CLAUDE.md` e `AGENTS.md`** — plugin inclui skill `/enterprise:install-rules` que baixa os 2 arquivos via `gh api` do repo do template. Sem duplicar conteúdo no plugin; sempre puxa versão atual on-demand.
+- **`.claude/settings.json`** — consumidor copia manualmente do template
+- **`.gitignore`** — consumidor adiciona manualmente
 
 Para projetos novos, o caminho ideal continua sendo `new_repo.py` (wizard).
 Plugin é para projetos já existentes que querem adotar o sistema agentic incrementalmente.
