@@ -1,4 +1,4 @@
-# Enterprise Plugin (v1.1.0)
+# Enterprise Plugin (v1.2.0)
 
 Plugin Claude Code que empacota o sistema agentic Dual Multi-Agent do
 [claude-code-enterprise-template](https://github.com/ggnicolau/claude-code-enterprise-template).
@@ -85,7 +85,7 @@ python scripts/build_plugin.py --version 1.1.0
 
 ## Versionamento
 
-Versão atual: **1.1.0**
+Versão atual: **1.2.0**
 
 Cada bump é commit no repo do template. Consumers recebem update via `/plugin update`
 quando o marketplace for atualizado.

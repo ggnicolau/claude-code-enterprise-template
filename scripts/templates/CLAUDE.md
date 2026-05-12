@@ -103,6 +103,38 @@ A hierarquia conceitual no organograma (PM → TL → especialistas) descreve **
 
 O `Agent` tool aceita apenas os 5 built-in como `subagent_type` (`general-purpose`, `Explore`, `Plan`, `claude-code-guide`, `statusline-setup`). Os 13 agentes em `.claude/agents/` são **bibliotecas de papel** carregadas via prompt — não aparecem como `subagent_type` próprio. Padrão: spawnar com `subagent_type: "general-purpose"` (veículo) e instalar o papel no prompt inicial (`"Você é o tech-lead. Leia .claude/agents/tech-lead.md..."`).
 
+### Memória persistente dos agentes (`memory: project`)
+
+12 dos 13 agentes têm `memory: project` no frontmatter (todos exceto `project-manager`, que na prática é o Claude Code base). Isso ativa:
+
+- **Diretório persistente** em `.claude/agent-memory/<agente>/` (versionado no git deste projeto)
+- **`MEMORY.md` injetado** no system prompt do agente quando spawnado (até 200 linhas / 25KB)
+- **Read/Write/Edit habilitados** automaticamente para o agente curar a própria memória
+
+**Como cada papel usa:**
+
+- `tech-lead` — decisões arquiteturais recorrentes, padrões de code review, débitos identificados
+- `product-owner` — critérios de aceite que funcionaram, dimensões mal cobertas, padrões de issue
+- `marketing-strategist` — calibragem de tom, copys que funcionaram, ajustes de voz por canal
+- `researcher` — benchmarks consultados deste projeto, fontes confiáveis, frameworks metodológicos
+- `data-engineer` — quirks de APIs externas, gotchas de parsing, schemas com pegadinhas
+- `data-scientist` — hipóteses validadas/refutadas, padrões estatísticos descobertos
+- `ai-engineer` — prompts que funcionaram, evals rodadas, padrões de orquestração de agentes
+- `qa` — flakys conhecidos, fixtures reutilizáveis, padrões de cobertura
+- `security-auditor` — anti-padrões deste projeto, checagens recorrentes, blindagens aplicadas
+- `infra-devops` — quirks de CI/CD, configs cloud, runbooks ad-hoc
+- `ml-engineer`, `design-engineer` — placeholder para uso futuro quando o projeto demandar
+
+**Regra de não-redundância:**
+
+Memória de agente é para **tribal knowledge interno do papel** — não duplica o que já tem casa canônica:
+- Decisões do projeto inteiro vão em `project/memory/project_history.md` (não no MEMORY do tech-lead)
+- Plans de produto vão em `products/<produto>/<plan>.md` (não no MEMORY do product-owner)
+- Editorial guidelines vão em `products/<produto>/editorial_guidelines.md` (não no MEMORY do marketing-strategist)
+- Issues e PRs vão no Kanban + git (não no MEMORY de ninguém)
+
+Use o MEMORY do agente para **padrões e aprendizados internos do papel** que se acumulam ao longo de várias sessões e não merecem documento próprio.
+
 ### Fluxo padrão para tarefa técnica
 
 0. **Verificação de produto (Mundo 2 / produto):** se a tarefa vai mexer em código/docs de um produto pela primeira vez (não há pasta `products/<produto>/` ou ela existe mas foi criada manualmente sem `MEMORY.md` + plan inicial), **pare e sugira ao usuário rodar `/kickoff-product <nome>` antes** de prosseguir. Aguarde confirmação explícita do usuário antes de continuar — não rode `/kickoff-product` autonomamente, e não inicie a tarefa técnica em paralelo. Justificativa: criar produto na marra leva a `products/<produto>/` sem índice canônico, plan stub ausente, estrutura inconsistente — débito que vira catch-up retroativo depois.

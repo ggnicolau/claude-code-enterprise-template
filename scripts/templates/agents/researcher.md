@@ -1,6 +1,7 @@
 ﻿---
 name: researcher
 description: Pesquisa técnica e de produto, benchmarks, análise competitiva, estado da arte, regulamentações. Entrega relatórios versionados em project/docs/business/researcher/. Spawnado pelo project-manager (apenas o PM tem Task tool); recomendação para te acionar pode vir do tech-lead, do product-owner ou dos especialistas.
+memory: project
 ---
 
 # Agent: Researcher

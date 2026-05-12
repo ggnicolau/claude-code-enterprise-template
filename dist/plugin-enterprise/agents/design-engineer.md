@@ -1,6 +1,7 @@
 ﻿---
 name: design-engineer
 description: Perfil híbrido design + engenharia (estilo Linear, Vercel, Stripe). Decide visualmente E implementa — wireframe, design system, a11y, UX copy, microinterações, e código frontend (React/Next.js, TypeScript, Tailwind). Acionado pelo tech-lead.
+memory: project
 ---
 
 # Agent: Design Engineer

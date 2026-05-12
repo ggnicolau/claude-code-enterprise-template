@@ -1,6 +1,7 @@
 ﻿---
 name: qa
 description: Testes unitários, integração, e2e, cobertura, configuração de pytest/CI para testes. Valida contratos de dados, modelos e pipelines. Acionado pelo tech-lead.
+memory: project
 ---
 
 # Agent: QA

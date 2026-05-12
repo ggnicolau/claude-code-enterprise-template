@@ -1,6 +1,7 @@
 ﻿---
 name: ml-engineer
 description: Produtização de modelos validados pelo data-scientist — pipeline de treino, serving, monitoramento de drift, feature engineering, experimentos. Acionado pelo tech-lead.
+memory: project
 ---
 
 # Agent: ML Engineer

@@ -8,7 +8,7 @@
       "name": "enterprise",
       "source": "./dist/plugin-enterprise",
       "description": "Sistema agentic completo do template enterprise",
-      "version": "1.1.0"
+      "version": "1.2.0"
     }
   ]
 }
