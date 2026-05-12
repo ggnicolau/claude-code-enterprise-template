@@ -158,6 +158,75 @@ O PR chega mais bem especificado — a colaboração acontece antes de implement
 
 ---
 
+## Agent Teams — Quando Propor
+
+Por padrão, o PM orquestra via subagents (Task tool). Cada subagent trabalha isolado e o PM consolida. Esse modelo é estável e suficiente para a maioria das tarefas.
+
+Em 3 cenários, **proponha agent team ao usuário** sem ser solicitado:
+
+### Cenário A — Agent team efêmero para tarefa pontual
+
+Se a tarefa requer **discussão real entre 3+ agentes** (não outputs paralelos isolados), proponha agent team antes de spawnar Task em massa.
+
+Sinais:
+- Tarefa pede que agentes "respondam uns aos outros" ou "discutam"
+- Validação cruzada entre múltiplos pontos de vista é o ponto da tarefa
+- Outputs sequenciais consolidados pelo PM perderiam a riqueza do debate
+
+**Procedimento:**
+1. **Apresente proposta ao usuário:** os 3-5 agentes sugeridos, por que cada um, e como vão interagir (quem valida, quem produz, quem discute). Aguarde aprovação.
+2. Se aprovado: crie via `TeamCreate`, opere via `SendMessage`
+3. Ao final da tarefa: `TeamDelete` para liberar config
+4. Registre em `project_history.md` que o team foi usado e o resultado
+
+### Cenário B — Brainstorm com múltiplos pontos de vista
+
+Quando o usuário traz uma questão conceitual/estratégica em conversa livre (fora de `/comando`), e você percebe que **debate entre 3 agentes** enriqueceria mais que respostas sequenciais, proponha agent team efêmero para brainstorm.
+
+Exemplo: "Como abordar X?" — em vez de PM consolidar opiniões de 3 subagents isolados, agent team permite que tech-lead, product-owner e researcher argumentem entre si.
+
+**Mesmo procedimento do Cenário A** — apresente proposta, aguarde aprovação, crie, opere, delete ao final.
+
+### Cenário C — Agent team persistente para produto recorrente
+
+Quando o projeto cria um **produto cujos próprios agentes são o produto** (ex: rotina recorrente que produz artefatos onde a interação dos agentes é o que gera valor), proponha agent team **persistente**, atrelado ao produto em `products/<produto>/` (Mundo 2 / produto).
+
+Sinais:
+- O produto é uma rotina recorrente (diária, semanal, on-demand)
+- Múltiplos agentes precisam validar/rejeitar trabalho uns dos outros
+- Sem isso, você teria que criar muita orquestração custom (scripts, arquivos de briefing, etapas de aprovação)
+
+**Procedimento:**
+1. Identifique o gatilho: ao rodar `/kickoff-product <nome>`, avalie se o produto se beneficia de agent team persistente.
+2. **Apresente análise ao usuário:** time sugerido, papéis, fluxo de `SendMessage` entre eles, gatilho de execução.
+3. Se aprovado: agent team se torna parte do `products/<produto>/MEMORY.md` — documentado, persistente entre execuções, evoluível.
+4. Não delete entre execuções. Delete só se o produto for descontinuado.
+
+**Nota sobre `/kickoff-product`:** o command cria a estrutura canônica do produto. A regra do agent team persistente é uma decisão **dentro** do kickoff — não cria team automaticamente, mas avalia se vale propor. O próprio `.md` do command pode ganhar uma fase específica para essa avaliação; ajuste conforme necessário ao operar.
+
+### Como operar
+
+- Ativar via flag de ambiente: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+- Configurações do team ficam em `~/.claude/teams/{team-name}/config.json`
+- Task list compartilhada em `~/.claude/tasks/{team-name}/`
+- Comunicação via `SendMessage` (direta entre teammates ou broadcast)
+- Modos de exibição: in-process (Shift+Down para ciclar) ou split-pane (requer tmux/iTerm2 — não funciona no Windows Terminal)
+
+### Limitações conhecidas
+
+- Lead é fixo — não dá pra promover teammate para lead
+- Sem session resumption (`/resume`) com teammates in-process
+- Task status pode ficar desatualizado se teammate falhar em marcar completado
+- Sem nested teams (teammate não cria team)
+- Um time por sessão lead
+- `TeamCreate` chamado por subagente standalone cria estrutura órfã que persiste no disco
+
+### Default
+
+Em todos os outros casos, **continue usando subagents via Task** — modelo estável e que entrega bem na maioria das tarefas técnicas e de produto.
+
+---
+
 ## Stack
 - Python 3.14 (interpretador base)
 - Tests: pytest
