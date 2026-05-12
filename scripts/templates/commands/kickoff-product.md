@@ -45,6 +45,30 @@ aguardando resposta):
 
 As respostas alimentam o stub do plan inicial.
 
+### 2.5. Avaliação de agent team persistente (opcional)
+
+Antes de criar a estrutura canônica, avalie se este produto se beneficia de **agent team persistente** (ver CLAUDE.md §"Agent Teams — Quando Propor", Cenário C).
+
+Pergunte ao usuário se você identificar algum dos sinais:
+- Rotina recorrente (diária, semanal, on-demand)
+- Múltiplos agentes precisam validar/rejeitar trabalho uns dos outros (ex: PM, PO, marketing-strategist, data-engineer, data-scientist colaborando num boletim)
+- Pipeline planejada depende de orquestração custom (scripts intermediários, arquivos de briefing, etapas de aprovação)
+
+**Pergunta sugerida:**
+
+> "Esse produto parece se beneficiar de um **agent team persistente** — um time de agentes que se comunica via `SendMessage` ao longo de toda execução do produto, em vez do PM orquestrar via Task a cada rodada. Os sinais que vejo: [listar os sinais identificados]. Quer que eu monte um agent team para esse produto?"
+
+**Se o usuário aprovar:**
+
+1. Identifique os 3-5 agentes do time, papéis e fluxo de `SendMessage` (quem produz, quem valida, quem aprova)
+2. Documente isso no `MEMORY.md` do produto numa seção "Agent Team Persistente" — nome do team, membros, fluxo, gatilho de execução
+3. Crie o team via `TeamCreate` com nome `<produto>-team`
+4. Marque no plan v1 (§15.1) que o produto opera via agent team persistente
+
+**Se o usuário não tiver certeza:** siga **sem** agent team. Pode ser adicionado depois, após algumas iterações reais do produto que mostrem onde a orquestração custom dói. A reversão também é simples: criar team depois via `TeamCreate` e atualizar o MEMORY.md.
+
+**Se você não identificou sinais:** não pergunte — siga direto para a etapa 3. A maioria dos produtos não se beneficia de agent team persistente; é caso específico, não default.
+
 ### 3. Cria a estrutura canônica
 
 ```
