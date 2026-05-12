@@ -1,0 +1,14 @@
+{
+  "name": "claude-code-enterprise-template",
+  "owner": {
+    "name": "Guilherme Giuliano Nicolau"
+  },
+  "plugins": [
+    {
+      "name": "enterprise",
+      "source": "./dist/plugin-enterprise",
+      "description": "Sistema agentic completo do template enterprise",
+      "version": "1.0.0"
+    }
+  ]
+}
