@@ -99,6 +99,10 @@ Consequências práticas:
 
 A hierarquia conceitual no organograma (PM → TL → especialistas) descreve **autoridade técnica** — quem decide o quê — e não a cadeia de spawn. Quem spawna sempre é o PM.
 
+### Sobre `subagent_type` — papel customizado vai no prompt, não no parâmetro
+
+O `Agent` tool aceita apenas os 5 built-in como `subagent_type` (`general-purpose`, `Explore`, `Plan`, `claude-code-guide`, `statusline-setup`). Os 13 agentes em `.claude/agents/` são **bibliotecas de papel** carregadas via prompt — não aparecem como `subagent_type` próprio. Padrão: spawnar com `subagent_type: "general-purpose"` (veículo) e instalar o papel no prompt inicial (`"Você é o tech-lead. Leia .claude/agents/tech-lead.md..."`).
+
 ### Fluxo padrão para tarefa técnica
 
 0. **Verificação de produto (Mundo 2 / produto):** se a tarefa vai mexer em código/docs de um produto pela primeira vez (não há pasta `products/<produto>/` ou ela existe mas foi criada manualmente sem `MEMORY.md` + plan inicial), **pare e sugira ao usuário rodar `/kickoff-product <nome>` antes** de prosseguir. Aguarde confirmação explícita do usuário antes de continuar — não rode `/kickoff-product` autonomamente, e não inicie a tarefa técnica em paralelo. Justificativa: criar produto na marra leva a `products/<produto>/` sem índice canônico, plan stub ausente, estrutura inconsistente — débito que vira catch-up retroativo depois.
@@ -189,7 +193,7 @@ Exemplo: "Como abordar X?" — em vez de PM consolidar opiniões de 3 subagents 
 
 ### Cenário C — Agent team persistente para produto recorrente
 
-Quando o projeto cria um **produto cujos próprios agentes são o produto** (ex: rotina recorrente que produz artefatos onde a interação dos agentes é o que gera valor), proponha agent team **persistente**, atrelado ao produto em `products/<produto>/` (Mundo 2 / produto).
+Quando o projeto cria um **produto cujos próprios agentes são o produto** (ex: rotina recorrente que produz artefatos onde a interação dos agentes é o que gera valor — boletim diário, observatório, relatórios automatizados), proponha agent team **persistente**, atrelado ao produto em `products/<produto>/` (Mundo 2 / produto).
 
 Sinais:
 - O produto é uma rotina recorrente (diária, semanal, on-demand)
@@ -203,6 +207,16 @@ Sinais:
 4. Não delete entre execuções. Delete só se o produto for descontinuado.
 
 **Nota sobre `/kickoff-product`:** o command cria a estrutura canônica do produto. A regra do agent team persistente é uma decisão **dentro** do kickoff — não cria team automaticamente, mas avalia se vale propor. O próprio `.md` do command pode ganhar uma fase específica para essa avaliação; ajuste conforme necessário ao operar.
+
+### Postura do moderador em teams efêmeros (Cenários A e B)
+
+Aplica-se ao PM quando lidera teams dos Cenários A (debate pontual) e B (brainstorm). Não aplica ao Cenário C (produto recorrente — agentes operam por protocolo formal, não por debate aberto).
+
+**DMs entre teammates são esperados, não problema.** `SendMessage` é peer-to-peer por design — teammates trocam DMs para validar hipóteses, perguntar coisas específicas e refinar argumentos sem encher o canal de todos. O moderador recebe summary das DMs via idle notification e **decide caso a caso se intervém**: cobrar broadcast só quando perceber risco real de **dois teammates desenvolverem visões divergentes em paralelo sem o grupo conciliar**, ou quando a decisão depende do grupo todo ouvir o mesmo argumento simultaneamente. Postura padrão: confiar no julgamento do moderador, não regra fixa.
+
+**Não force fechamento sem consultar o usuário.** Se o debate produziu material suficiente para uma decisão (ex: 3 cenários distintos com prós/contras), perguntar ao usuário antes de cortar: "já temos X, quer que eu peça consolidação ou deixar aprofundarem mais?". Interromper unilateralmente economiza tokens mas pode cortar caminhos exploratórios que tinham valor — e o usuário é quem julga isso melhor.
+
+**Salve o transcript antes do cleanup automático.** Transcripts vivem em `~/.claude/projects/<project-hash>/<session-id>/subagents/agent-{agentId}.jsonl` (cada "invocation" gera 1 JSONL; o maior de cada papel é o snapshot final). O `TeamDelete` não apaga esses arquivos, mas eles são limpos por `cleanupPeriodDays` no `settings.json` (default 30 dias). **Hook automático em `.claude/settings.json` (`PostToolUse` matcher `TeamDelete`) dispara `scripts/hooks/export_team_transcript.py`** ao final de cada team — exporta o transcript completo para `project/docs/business/project-manager/team_<team-name>.md` (versionado no repo). Se você desligar o hook, exporte manualmente antes de rodar `TeamDelete` para preservar o valor histórico.
 
 ### Como operar
 

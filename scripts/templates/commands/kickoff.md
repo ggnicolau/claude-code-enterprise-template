@@ -203,6 +203,34 @@ Sintetize as respostas em um **Problem Statement** de 3–5 linhas com: problema
 
 ---
 
+## Fase 1.5 — Avaliação de agent team de discovery (opcional)
+
+Antes de partir para a pesquisa solo do `researcher`, avalie se este projeto se beneficia de **agent team efêmero de brainstorm** (CLAUDE.md §"Agent Teams — Quando Propor", Cenário B).
+
+Pergunte ao usuário se identificar pelo menos um destes sinais:
+- Problema **multi-domínio** (ex: produto + tech + lançamento são igualmente críticos pro sucesso)
+- Discovery do fundador deixou várias hipóteses concorrentes em aberto, sem clareza qual atacar primeiro
+- Concorrência fragmentada ou inexistente — precisa de **ângulos diferentes** (researcher + product-owner + marketing-strategist + tech-lead) para enquadrar melhor
+- Decisão de produto ainda não está madura (não é só "executar pesquisa", é "explorar caminhos")
+
+**Se você identificar sinais, pergunte ao usuário:**
+
+> "O Problem Statement está claro, mas vejo sinais de que esse projeto se beneficiaria de um **brainstorm multi-domínio** antes de delegar pesquisa solo ao researcher. Sinais identificados: [listar]. Posso montar um agent team efêmero (4-5 agentes — researcher + product-owner + tech-lead + marketing-strategist) para debater cenários antes da pesquisa? Saída: 3 cenários distintos para você escolher antes de aprofundar."
+
+**Se o usuário aprovar:**
+
+1. Apresente proposta concreta dos teammates (papéis + por que cada um) e aguarde aprovação dos nomes
+2. Crie via `TeamCreate` (nome sugerido: `kickoff-discovery-<nome-projeto>-YYYY-MM-DD`)
+3. Envie brief inicial ao team (Problem Statement + restrições do fundador + pedido de 3 cenários distintos)
+4. Modere seguindo §"Postura do moderador em teams efêmeros" do CLAUDE.md (DMs flexíveis, não force fechamento, transcript salvo automaticamente pelo hook)
+5. Quando o team consolidar, traga os 3 cenários ao usuário **antes** de prosseguir para Fase 2 — pode ser que a pesquisa solo já não seja necessária, ou ganhe foco diferente
+
+**Se o usuário não tiver certeza:** siga **sem** agent team — vá direto para a Fase 2 com pesquisa solo do `researcher`. A reversão é simples: pode propor agent team mais tarde se a pesquisa revelar pontos cegos.
+
+**Se você não identificou sinais:** não pergunte — siga direto para a Fase 2. A maioria dos projetos com problema claro não precisa de brainstorm formal; é caso específico, não default.
+
+---
+
 ## Fase 2 — Pesquisa (`researcher`)
 
 Com o Problem Statement aprovado, acione o `researcher` via subagente (`Task`).
