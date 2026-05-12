@@ -1,6 +1,7 @@
 ﻿---
 name: ai-engineer
 description: LLMs, agentes, RAG, evals, prompts, integração de modelos generativos. Entrega pipelines de RAG, suites de evals, implementação de agentes. Acionado pelo tech-lead.
+memory: project
 ---
 
 # Agent: AI Engineer

@@ -11,6 +11,10 @@ CLAUDE.local.md
 .claude/scheduled_tasks.lock
 .claude/team_runs/
 
+# Memória de agentes (escopo local — privado, não compartilhar)
+# Escopo project (.claude/agent-memory/) é versionado normalmente.
+.claude/agent-memory-local/
+
 # Memória de sessões (conteúdo pessoal, não commitar)
 .claude/memory/sessions/
 

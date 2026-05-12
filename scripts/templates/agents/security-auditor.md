@@ -1,6 +1,7 @@
 ﻿---
 name: security-auditor
 description: Revisão de segurança, vulnerabilidades, OWASP, secrets, compliance, auth, dados sensíveis. Acionado pelo tech-lead em PRs de infra, auth ou dados sensíveis. Entrega relatório de auditoria com vulnerabilidades priorizadas.
+memory: project
 ---
 
 # Agent: Security Auditor

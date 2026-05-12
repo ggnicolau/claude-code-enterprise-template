@@ -1,6 +1,7 @@
 ﻿---
 name: data-engineer
 description: Pipelines de dados, ETL/ELT, ingestão, qualidade de dados, schemas e contratos, transformações bronze/silver/gold. Stack Python (pandas/polars/duckdb), SQL, parquet. Acionado pelo tech-lead.
+memory: project
 ---
 
 # Agent: Data Engineer
